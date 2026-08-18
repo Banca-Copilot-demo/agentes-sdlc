@@ -1,0 +1,7 @@
+name: Humo
+on: [push]
+jobs:
+  ok:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Actions funciona en este repo"
