@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "bcp.sdlc.migracion-cnf",
+  "version": "0.1.0",
+  "description": "Agentes y skills del dominio SDLC: migracion y validacion de contratos.",
+  "author": { "name": "Squad SDLC BCP" },
+  "repository": "https://github.com/BCP-Copilot-demo/agentes-sdlc",
+  "license": "Proprietary",
+  "keywords": ["bcp", "sdlc", "openapi", "migracion"]
+}
