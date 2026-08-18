@@ -1,0 +1,20 @@
+name: Validar
+
+# LLAMADOR. Diez lineas: toda la logica vive en el repositorio del estandar.
+#
+# En BCP este archivo NO existiria: el ruleset de la organizacion exigiria el workflow
+# directamente, para que ningun equipo pueda borrarlo. Aqui esta como archivo porque el
+# plan de la organizacion de demo (free) no incluye rulesets.
+#
+# NOTA: se referencia por @main solo en la demo. En BCP debe ir FIJADO POR SHA: el
+# validador corre con los permisos del repositorio que lo llama, asi que una referencia
+# movil significa que el gate puede cambiar sin que nadie lo apruebe.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  conformidad:
+    uses: BCP-Copilot-demo/estandar-agentico/.github/workflows/validar.yml@main
