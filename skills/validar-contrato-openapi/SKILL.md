@@ -5,9 +5,11 @@ license: Proprietary
 metadata:
   id: demo.sdlc.validar-contrato-openapi
   owner_team: squad-sdlc
+  owner_contact: squad-sdlc@ejemplo.dev
+  data_classification: internal
   status: draft
   version: "1.0.0"
-  standard_version: "6.0.0"
+  standard_version: "7.0.0"
 ---
 
 # Validar un contrato OpenAPI contra los lineamientos del estandar

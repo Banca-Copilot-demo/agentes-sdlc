@@ -1,9 +1,18 @@
 {
   "id": "demo.sdlc.migracion-cnf",
   "domain": "sdlc",
-  "owner": { "team": "squad-sdlc", "contact": "squad-sdlc@ejemplo.dev" },
+  "owner": {
+    "team": "squad-sdlc",
+    "contact": "squad-sdlc@ejemplo.dev"
+  },
   "status": "draft",
   "data_classification": "internal",
-  "standard_version": "6.0.0",
-  "artifacts": { "skills": 1, "agents": 0, "prompts": 0, "mcps": 0, "instructions": 0 }
+  "standard_version": "7.0.0",
+  "artifacts": {
+    "skills": 1,
+    "agents": 0,
+    "prompts": 1,
+    "mcps": 0,
+    "instructions": 0
+  }
 }
