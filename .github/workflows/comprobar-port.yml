@@ -39,13 +39,20 @@ jobs:
               -H 'Content-Type: application/json' \
               -d "{\"clientId\":\"$ID\",\"clientSecret\":\"$SECRETO\"}")"
             if [ "$codigo" = "200" ] && grep -q accessToken /tmp/r.json; then
+              # Se guarda en una variable del shell Y en el entorno: `$GITHUB_ENV` no se lee hasta
+              # el paso siguiente, asi que dentro de ESTE paso solo sirve la del shell.
+              encontrada="$base"
               echo "REGION=$base" >> "$GITHUB_ENV"
               echo "Autenticacion correcta en $base"
             else
               echo "  $base -> HTTP $codigo (no es esta region)"
             fi
           done
-          [ -n "${REGION:-}" ] || { grep -o '"[a-z]*":"[^"]*"' /tmp/r.json | head -3; exit 1; }
+          if [ -z "${encontrada:-}" ]; then
+            echo "::error::las credenciales no autentican en ninguna region"
+            grep -o '"[a-z]*":"[^"]*"' /tmp/r.json | head -3
+            exit 1
+          fi
 
       - name: Que hay ya en el catalogo
         env:
