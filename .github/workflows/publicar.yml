@@ -1,0 +1,25 @@
+name: Publicar
+
+# Se dispara al empujar una etiqueta, y no al mergear: el merge deja el contenido listo, la
+# etiqueta es la que declara "esta version es la que se publica".
+on:
+  push:
+    tags: ["v*.*.*"]
+
+# Los permisos se declaran en el LLAMADOR aunque el workflow reutilizable tambien los declare:
+# medido en la demo, un llamador sin bloque `permissions` termina en `startup_failure` sin ningun
+# mensaje que explique por que.
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  publicar:
+    uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/publicar.yml@main
+    with:
+      repositorio-indice: Banca-Copilot-demo/marketplace
+    secrets:
+      # Si el secreto no existe, la publicacion se completa igual y el indice se pone al dia en su
+      # pasada programada. El aviso acelera; no es lo que da la garantia.
+      token-indice: ${{ secrets.TOKEN_INDICE }}
