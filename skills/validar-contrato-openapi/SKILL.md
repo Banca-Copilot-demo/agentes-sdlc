@@ -1,6 +1,6 @@
 ---
 name: validar-contrato-openapi
-description: Valida un contrato OpenAPI contra los lineamientos de APIs del estandar -nomenclatura de rutas, versionado en la URL, codigos de error obligatorios y cabeceras de trazabilidad-. Usalo cuando alguien pida revisar, validar o auditar una especificacion OpenAPI o Swagger, o antes de publicar una API nueva.
+description: Valida un contrato OpenAPI contra los lineamientos de APIs de la organizacion -nomenclatura de rutas, versionado en la URL, codigos de error obligatorios y cabeceras de trazabilidad-. Usalo cuando alguien pida revisar, validar o auditar una especificacion OpenAPI o Swagger, o antes de publicar una API nueva.
 license: Proprietary
 metadata:
   id: demo.sdlc.validar-contrato-openapi
@@ -12,7 +12,7 @@ metadata:
   standard_version: "7.0.0"
 ---
 
-# Validar un contrato OpenAPI contra los lineamientos del estandar
+# Validar un contrato OpenAPI contra los lineamientos de APIs de la organizacion
 
 ## Cuando usarlo
 
