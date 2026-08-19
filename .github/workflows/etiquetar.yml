@@ -1,0 +1,17 @@
+name: Etiquetar
+
+# Al mergear a main, la etiqueta se deriva de la version declarada en el manifiesto. Si la version no
+# subio en ese merge, no pasa nada: mergear no publica por si mismo.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  etiquetar:
+    uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/etiquetar.yml@main
+    secrets:
+      app-id:  ${{ secrets.APP_ID_AGENTICO }}
+      app-key: ${{ secrets.APP_KEY_AGENTICO }}
