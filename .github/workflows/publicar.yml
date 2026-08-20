@@ -20,6 +20,8 @@ jobs:
     with:
       repositorio-indice: Banca-Copilot-demo/marketplace
     secrets:
-      # Si el secreto no existe, la publicacion se completa igual y el indice se pone al dia en su
-      # pasada programada. El aviso acelera; no es lo que da la garantia.
+      # Las tres son opcionales a proposito: sin ellas la publicacion se completa igual. La ficha y
+      # el aviso al indice son ACELERADORES -- lo que da la garantia es el sello.
+      port-client-id: ${{ secrets.PORT_CLIENT_ID }}
+      port-client-secret: ${{ secrets.PORT_CLIENT_SECRET }}
       token-indice: ${{ secrets.TOKEN_INDICE }}
