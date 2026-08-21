@@ -1,0 +1,29 @@
+# CODEOWNERS — quien tiene que APROBAR segun QUE archivo se toca.
+#
+# COMO FUNCIONA: GitHub lee este archivo, mira que rutas cambia el pull request, y exige la
+# aprobacion de los duenos de CADA ruta tocada. Con la proteccion de rama activada («Require
+# review from Code Owners»), el merge se bloquea hasta tenerlas todas.
+#
+# POR QUE HACE FALTA: sin este archivo, la clase de aprobador que el estandar exige es solo una
+# regla del gate, y el gate no puede impedir que apruebe quien no debe. Esto si.
+#
+# El ULTIMO patron que coincide gana, asi que lo especifico va abajo.
+
+# Por defecto, el equipo del dominio.
+*                           @Banca-Copilot-demo/squad-sdlc
+
+# ── Los dos tipos que anaden capacidad EJECUTABLE: aprueba seguridad ────────────────────────
+# Un `mcp` expone herramientas de un tercero; un `hook` ejecuta codigo NUESTRO de forma
+# automatica, sin que nadie lo invoque. Los dos exigen firma de seguridad, y por eso ademas el
+# gate pide su bloque `approval` con `security_review`.
+/.mcp.json                  @Banca-Copilot-demo/seguridad-agentica
+/hooks.json                 @Banca-Copilot-demo/seguridad-agentica
+/hooks/                     @Banca-Copilot-demo/seguridad-agentica
+
+# ── El tipo que cambia el comportamiento de un repositorio ajeno: aprueba arquitectura ───────
+*.instructions.md           @Banca-Copilot-demo/arquitectura-agentica
+/instructions/              @Banca-Copilot-demo/arquitectura-agentica
+
+# ── Lo que declara el gobierno del paquete ──────────────────────────────────────────────────
+/GOVERNANCE.json            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica
+/.claude-plugin/            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica

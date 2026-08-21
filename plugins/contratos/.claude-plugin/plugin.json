@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "contratos",
+  "version": "0.1.0",
+  "description": "Validacion de contratos OpenAPI del dominio SDLC.",
+  "author": {
+    "name": "Squad SDLC (demo)"
+  },
+  "repository": "https://github.com/Banca-Copilot-demo/agentes-sdlc",
+  "license": "Proprietary",
+  "keywords": [
+    "agentico",
+    "sdlc",
+    "openapi"
+  ]
+}
