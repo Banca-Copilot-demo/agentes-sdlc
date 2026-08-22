@@ -2,9 +2,14 @@ name: Publicar
 
 # Se dispara al empujar una etiqueta, y no al mergear: el merge deja el contenido listo, la
 # etiqueta es la que declara "esta version es la que se publica".
+# DOS PATRONES DE ETIQUETA. Un repositorio de un solo plugin en la raiz usa `vX.Y.Z`; uno que
+# aloja varios usa `<nombre>--vX.Y.Z`, porque `vX.Y.Z` no diria de cual. La accion de publicacion
+# traduce el nombre a su subruta y empaqueta solo ese plugin.
 on:
   push:
-    tags: ["v*.*.*"]
+    tags:
+      - "v*.*.*"
+      - "*--v*.*.*"
 
 # Los permisos se declaran en el LLAMADOR aunque el workflow reutilizable tambien los declare:
 # medido en la demo, un llamador sin bloque `permissions` termina en `startup_failure` sin ningun
