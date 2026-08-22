@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "demo.sdlc.migracion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Planificacion y ejecucion de migraciones de plataforma del dominio SDLC.",
   "author": {
     "name": "Squad SDLC (demo)"
