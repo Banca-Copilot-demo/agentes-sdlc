@@ -1,0 +1,18 @@
+{
+  "id": "demo.sdlc.sueltos",
+  "domain": "sdlc",
+  "owner": {
+    "team": "squad-sdlc",
+    "contact": "squad-sdlc@ejemplo.dev"
+  },
+  "status": "draft",
+  "data_classification": "internal",
+  "version": "1.0.0",
+  "standard_version": "8.0.0",
+  "artifacts": {
+    "skills": 1
+  },
+  "x_extensions": {
+    "por_que_existe": "Gobierna el CONJUNTO SUELTO de este repositorio: los artefactos que viven en la raiz, fuera de todo plugin. No es el gobierno del repositorio ni de los plugins -- cada plugin tiene el suyo en plugins/<nombre>/GOVERNANCE.json -- sino de una unidad publicable mas. Su `version` es lo que da a esos artefactos etiqueta, paquete, atestacion y ficha en el catalogo; sin ella el gate los bloquea porque nadie los publicaria. Lo que este conjunto NO tiene es entrada en el marketplace, y es correcto: las entradas de un marketplace son plugins."
+  }
+}
