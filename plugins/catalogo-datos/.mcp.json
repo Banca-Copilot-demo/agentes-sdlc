@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "catalogo-datos": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["ejemplo-catalogo-datos-mcp@0.4.1"]
+    },
+    "aws-knowledge": {
+      "type": "http",
+      "url": "https://knowledge-mcp.global.api.aws"
+    }
+  }
+}

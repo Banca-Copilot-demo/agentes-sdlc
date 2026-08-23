@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "demo.sdlc.catalogo-datos",
+  "version": "0.1.0",
+  "description": "Acceso de lectura al catalogo de datos del dominio SDLC mediante un servidor MCP.",
+  "author": { "name": "Squad SDLC (demo)" },
+  "repository": "https://github.com/Banca-Copilot-demo/agentes-sdlc",
+  "license": "Proprietary",
+  "keywords": ["agentico", "sdlc", "mcp", "catalogo-datos"]
+}
