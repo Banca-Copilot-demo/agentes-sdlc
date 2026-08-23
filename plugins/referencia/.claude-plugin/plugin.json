@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "demo.sdlc.referencia",
+  "version": "0.1.0",
+  "description": "Plugin de referencia del dominio SDLC: lleva un artefacto de cada tipo para ejercitar el estandar de punta a punta.",
+  "author": { "name": "Squad SDLC (demo)" },
+  "repository": "https://github.com/Banca-Copilot-demo/agentes-sdlc",
+  "license": "Proprietary",
+  "keywords": ["agentico", "sdlc", "referencia"]
+}

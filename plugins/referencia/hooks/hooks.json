@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash\\(git commit.*\\)",
+        "timeoutSec": 5,
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Acaba de crearse un commit. Comprueba que su mensaje explique el POR QUE del cambio y no solo el QUE: si solo describe los archivos tocados, sugiere una linea que diga el motivo."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "demo.sdlc.referencia",
+  "domain": "sdlc",
+  "owner": {
+    "team": "squad-sdlc",
+    "contact": "squad-sdlc@ejemplo.dev"
+  },
+  "status": "draft",
+  "data_classification": "internal",
+  "standard_version": "7.0.0",
+  "artifacts": {
+    "skills": 1,
+    "agents": 1,
+    "prompts": 1,
+    "mcps": 1,
+    "hooks": 1
+  },
+  "mcp": {
+    "servers": [
+      {
+        "name": "aws-knowledge",
+        "source": {
+          "kind": "remote",
+          "ref": "https://knowledge-mcp.global.api.aws",
+          "version_pin": "sin-version"
+        },
+        "transport": "http",
+        "endpoint": "https://knowledge-mcp.global.api.aws",
+        "write_operations": false,
+        "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
+        "tools_digest_date": "2026-08-23"
+      }
+    ],
+    "credentials": {
+      "mechanism": "none"
+    },
+    "approval": {
+      "approved_by": "squad-plataforma-datos",
+      "date": "2026-08-23",
+      "review_by": "2026-11-23",
+      "security_review": true
+    }
+  },
+  "hooks": {
+    "approval": {
+      "approved_by": "squad-seguridad-appsec",
+      "date": "2026-08-23",
+      "review_by": "2027-02-23",
+      "security_review": true
+    }
+  }
+}
