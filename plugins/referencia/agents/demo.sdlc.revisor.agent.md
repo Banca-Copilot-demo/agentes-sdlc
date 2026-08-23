@@ -10,7 +10,7 @@ handoffs:
   - label: Planificar la migracion
     agent: demo.sdlc.migrador
     prompt: "Este cambio es una migracion de plataforma. Planificala."
-    auto_send: false
+    send: false
 metadata:
   id: demo.sdlc.revisor
   owner_team: squad-sdlc
