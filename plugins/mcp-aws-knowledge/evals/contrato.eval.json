@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "artifact": "demo.sdlc.mcp-aws-knowledge.mcp",
+  "level": 1,
+  "eval_type": "mcp_contract",
+  "defaults": {
+    "runs_per_case": 1,
+    "pass_threshold": 1.0,
+    "timeout_seconds": 30
+  },
+  "execution_failure_policy": "separate_verdict",
+  "cases": [
+    {
+      "id": "conecta",
+      "title": "El servidor responde y negocia la sesion MCP.",
+      "category": "happy_path",
+      "checks": [
+        {
+          "type": "mcp_connects",
+          "note": "Es la primera cosa que deja de funcionar cuando un servidor remoto se retira, y hasta que alguien lo intenta el catalogo sigue diciendo que esta disponible. Sin este caso, un servidor muerto figura como aprobado y vigente hasta su `review_by`, o sea hasta 2027."
+        }
+      ]
+    },
+    {
+      "id": "estan-las-cinco-declaradas",
+      "title": "Aparecen las cinco herramientas que se aprobaron, con su nombre exacto.",
+      "category": "happy_path",
+      "checks": [
+        { "type": "mcp_tool_present", "value": "aws___read_documentation" },
+        { "type": "mcp_tool_present", "value": "aws___search_documentation" },
+        { "type": "mcp_tool_present", "value": "aws___list_regions" },
+        { "type": "mcp_tool_present", "value": "aws___get_regional_availability" },
+        {
+          "type": "mcp_tool_present",
+          "value": "aws___retrieve_skill",
+          "note": "Las cinco se enumeran una por una a proposito, en vez de comprobar solo que hay cinco: si el proveedor retira una y anade otra, el conteo sigue dando cinco y el `tools_digest` cambia sin decir QUE cambio. Estas comprobaciones lo dicen."
+        }
+      ]
+    },
+    {
+      "id": "no-aparece-ninguna-de-escritura",
+      "title": "El servidor no expone ninguna herramienta que modifique estado.",
+      "category": "negative",
+      "checks": [
+        {
+          "type": "mcp_tool_absent",
+          "value": "aws___create_resource",
+          "note": "El caso NEGATIVO es el que sostiene la aprobacion entera. Este servidor se aprobo con `write_operations: false`, y de ese dato depende que la revision sea a 12 meses en vez de a 6. Si un dia aparece una herramienta de escritura, la aprobacion vigente ya no describe lo que el servidor hace -- y nada mas lo detectaria hasta la siguiente revision manual."
+        },
+        { "type": "mcp_tool_absent", "value": "aws___delete_resource" },
+        { "type": "mcp_tool_absent", "value": "aws___update_resource" }
+      ]
+    },
+    {
+      "id": "el-texto-de-las-descripciones-no-cambio",
+      "title": "Ninguna descripcion de herramienta cambio desde la aprobacion.",
+      "category": "security",
+      "checks": [
+        {
+          "type": "mcp_tool_description_unchanged",
+          "value": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
+          "note": "El digesto FIRMADO del 2026-08-23, verificado en vivo el mismo dia contra el servidor. Este es el unico caso que detecta un rug pull con los nombres intactos: la descripcion de una herramienta es texto de terceros que el modelo LEE como instruccion, y es donde se colocan las instrucciones envenenadas precisamente porque un humano no la abre. Los otros tres casos miran nombres y no verian nada."
+        }
+      ]
+    }
+  ]
+}
