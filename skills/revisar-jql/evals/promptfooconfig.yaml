@@ -1,0 +1,136 @@
+# Suite de evals de `revisar-jql`. Formato de la industria, sin nada inventado por nosotros.
+#
+# NO DECLARA `providers` A PROPOSITO, y es la decision de diseño mas importante de este archivo. El
+# proveedor se inyecta al ejecutar con `-r`:
+#
+#   promptfoo eval -c <esta-suite> -r "exec:python <ruta-al-puente>"    ← Copilot
+#   promptfoo eval -c <esta-suite> -r anthropic:claude-agent-sdk        ← Claude
+#
+# Tres razones, y las tres salieron de tropezar con ellas:
+#   1. PORTABILIDAD. El cable vive en el repositorio del ESTANDAR y esta suite en un repositorio de
+#      DOMINIO. Una ruta relativa entre repositorios asume que estan clonados como hermanos, y una
+#      absoluta lleva el nombre de una maquina.
+#   2. EL GATE DE HIGIENE LA RECHAZARIA. Medido: un `promptfooconfig.yaml` con la ruta absoluta del cable
+#      produce «ERROR posible ruta absoluta de maquina» en G3. Y tiene razon: esa suite no funcionaria en
+#      la maquina de nadie mas.
+#   3. UN SOLO ARCHIVO PARA LOS DOS CLIENTES. Lo que cambia entre evaluar sobre Claude o sobre Copilot es
+#      exclusivamente el proveedor. Si estuviera dentro, harian falta dos suites que se desincronizan.
+#
+# REQUISITO DE ENTORNO, que no es del esquema y hay que recordarlo: el cliente tiene que DESCUBRIR el
+# artefacto. Copilot los busca en `.github/skills/`, `.agents/skills/`, `.claude/skills/` y en los plugins
+# instalados -- no en el `skills/` de la raiz, que es donde vive este --. Asi que antes de correr la suite
+# hay que colocar o instalar el artefacto donde el cliente lo vea. Es el mismo patron que la instalacion:
+# lo que importa no es solo el archivo, es donde aterriza.
+description: revisar-jql · revisa una consulta JQL y explica por que cada cambio
+
+prompts:
+  - "{{consulta}}"
+
+# EL JUEZ ESTA DESACTIVADO A PROPOSITO, y su historia completa esta medida porque es la decision que mas
+# afecta al coste de G5.
+#
+# HAY DOS CREDENCIALES EN JUEGO Y NO SE HEREDAN ENTRE SI:
+#   - EL ARTEFACTO corre con la sesion del CLI de Copilot -- el login que ya existe, sin API key --.
+#     Funciona hoy.
+#   - EL JUEZ usa el proveedor de puntuacion de promptfoo, que por defecto es OpenAI y pide
+#     `OPENAI_API_KEY`. MEDIDO: sin ella falla con `invalid_grant`.
+#
+# TRES VIAS PROBADAS PARA NO NECESITAR UNA CREDENCIAL NUEVA, con su resultado:
+#   1. Usar el mismo cable como juez (`--grader exec:...`) → FALLA. Un juez no es un proveedor de texto
+#      cualquiera; tiene que devolver un veredicto estructurado.
+#   2. `--grader anthropic:claude-agent-sdk` → FALLA con «Anthropic API key is not set»: la bandera solo
+#      acepta un identificador, y `apiKeyRequired: false` es una OPCION del proveedor.
+#   3. Declararlo en este archivo con esa opcion → quita el problema de la credencial, pero pide que el
+#      paquete `@anthropic-ai/claude-agent-sdk` se resuelva DESDE EL DIRECTORIO DE LA SUITE. Instalarlo
+#      global y apuntar `NODE_PATH` no basta: haria falta un `node_modules` dentro del repositorio de
+#      dominio. Es viable y esta sin decidir.
+#
+# MIENTRAS SE DECIDA, LA SUITE FUNCIONA SIN JUEZ -- y eso es precisamente lo que la regla 4 del estandar
+# compra. Con un ancla determinista por caso, una suite sigue dando senal util cuando el juez no esta
+# disponible: en la corrida donde el juez fallo por credenciales, el ancla del filtro de proyecto PASO.
+# Sin ancla, ese caso no habria dicho nada.
+#
+# Para reactivarlo, descomentar y resolver la dependencia del punto 3:
+#
+# defaultTest:
+#   options:
+#     provider:
+#       id: anthropic:claude-agent-sdk
+#       config:
+#         apiKeyRequired: false
+
+tests:
+  # ── POSITIVO ──────────────────────────────────────────────────────────────────────────────
+  # El defecto que el propio SKILL.md llama «el que mas cuesta y el mas facil de pasar por alto»: sin
+  # `project = ` la consulta recorre toda la instancia. Funciona; solo tarda.
+  - description: consulta sin filtro de proyecto → senala el filtro que falta
+    vars:
+      consulta: |
+        Revisa esta consulta JQL:
+        status != Done ORDER BY cf[10021] DESC
+    assert:
+      # NO SE COMPRUEBA LA ACTIVACION AQUI, Y CONVIENE SABER POR QUE. Se intento de dos formas y ninguna
+      # sirve a traves del cable:
+      #   - `skill-used` observa llamadas a herramienta, y por el cable solo llega texto.
+      #   - Copilot a veces ANOTA en su respuesta `● skill(<nombre>)`, y parecia la solucion. MEDIDO: no
+      #     es fiable -- aparecio en una corrida y no en las siguientes --. Una asercion sobre algo
+      #     intermitente es peor que ninguna: en el caso NEGATIVO pasaria SIEMPRE, o sea que seria una
+      #     comprobacion vacia que se lee como cobertura.
+      # Queda pendiente la via buena: `--output-format json` expone la sesion completa y de ahi si se
+      # puede leer que se cargo. Hasta entonces, en Copilot se comprueba la SALIDA, no la activacion.
+      #
+      # ANCLA DETERMINISTA SOBRE EL CONTENIDO (regla 4): si el skill hizo su trabajo, la correccion es
+      # anadir el filtro de proyecto, asi que la palabra aparece.
+      - type: icontains
+        value: project
+      # Y lo que ninguna comprobacion mecanica alcanza, al juez: que EXPLIQUE, que es el requisito
+      # explicito del artefacto -- «una consulta corregida sin la razon se copia una vez y el mismo
+      # defecto reaparece en la siguiente».
+      # JUEZ DESACTIVADO (ver cabecera). Al reactivarlo, descomentar estas cuatro lineas:
+      # - type: llm-rubric
+      #   value: >
+      #     Explica POR QUE cada cambio mejora la consulta, no solo la reescribe. Menciona al menos dos
+      #     de estos problemas: falta el filtro de proyecto, el ORDER BY sobre un campo personalizado
+      #     obliga a ordenar en memoria, o la negacion amplia `status != Done` no aprovecha el indice.
+
+  # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
+  # Una consulta que ya trae `project` pero conserva el comodin por delante, que el SKILL.md tambien
+  # cubre. Comprueba que no se limita al defecto mas obvio.
+  - description: consulta con comodin por delante → senala el comodin
+    vars:
+      consulta: |
+        Revisa esta consulta JQL:
+        project = PAGOS AND summary ~ "*pago"
+    assert:
+      # LA PRIMERA VERSION DE ESTE CASO PEDIA `icontains: "*"` Y FALLABA, y el defecto era de la
+      # asercion, no del artefacto: el modelo explica el problema del comodin sin necesidad de imprimir
+      # un asterisco suelto. Una asercion mal escrita acusa al artefacto de algo que no hizo, que es el
+      # mismo dano que un caso sin ancla determinista pero al reves.
+      - type: contains-any
+        value:
+          - comod
+          - wildcard
+      # JUEZ DESACTIVADO (ver cabecera). Al reactivarlo, descomentar estas tres lineas:
+      # - type: llm-rubric
+      #   value: >
+      #     Identifica que el comodin al principio del termino de busqueda impide aprovechar el indice
+      #     de texto, y propone ponerlo al final o reformular.
+
+  # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
+  # Un «near-miss»: comparte vocabulario -- Jira -- pero no es una consulta JQL. Es el caso que impide
+  # que una `description` demasiado amplia capture tareas ajenas, y la omision mas frecuente en las
+  # suites reales.
+  #
+  # SE COMPRUEBA POR EL CONTENIDO, no por la ausencia de un marcador. Una version anterior de este caso
+  # aserataba `not-contains: "skill(revisar-jql)"` y PASABA -- pero pasaba por la razon equivocada, porque
+  # ese marcador no aparece de forma fiable, asi que la asercion se cumplia siempre. Un caso negativo que
+  # no puede fallar no protege de nada y ademas se lee como cobertura.
+  #
+  # Esto si distingue: si el skill se activara indebidamente, reescribiria una consulta -- y una consulta
+  # JQL reescrita contiene `project =`.
+  - description: NO reescribe ninguna consulta ante una pregunta que no lo es
+    vars:
+      consulta: "Explicame en dos frases que es Jira y para que lo usan los equipos."
+    assert:
+      - type: not-contains
+        value: "project ="
