@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "demo.sdlc.mcp-aws-knowledge",
+  "version": "0.1.0",
+  "description": "Un solo servidor MCP: la base de conocimiento publica de AWS, de solo lectura. Existe como plugin propio para poder aprobarlo y revocarlo por separado del resto.",
+  "author": { "name": "Squad SDLC (demo)" },
+  "repository": "https://github.com/Banca-Copilot-demo/agentes-sdlc",
+  "license": "Proprietary",
+  "keywords": ["agentico", "sdlc", "mcp", "aws"]
+}

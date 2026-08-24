@@ -26,19 +26,6 @@
         },
         "transport": "stdio",
         "write_operations": false
-      },
-      {
-        "name": "aws-knowledge",
-        "source": {
-          "kind": "remote",
-          "ref": "https://knowledge-mcp.global.api.aws",
-          "version_pin": "sin-version"
-        },
-        "transport": "http",
-        "endpoint": "https://knowledge-mcp.global.api.aws",
-        "write_operations": false,
-        "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
-        "tools_digest_date": "2026-08-23"
       }
     ],
     "credentials": {
@@ -53,7 +40,8 @@
       "approved_by": "squad-plataforma-datos",
       "date": "2026-08-23",
       "review_by": "2026-11-23",
-      "security_review": true
+      "security_review": true,
+      "notes": "Servidor propio del dominio, de solo lectura y con version fijada. El servidor de AWS que este bloque declaraba antes se fue a su propio plugin: con dos servidores en un archivo, UNA aprobacion cubria los dos y no se podia aplicar a cada uno el plazo de revision de su perfil de riesgo."
     }
   }
 }
