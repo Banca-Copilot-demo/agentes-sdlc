@@ -20,10 +20,11 @@
 /hooks.json                 @Banca-Copilot-demo/seguridad-agentica
 /hooks/                     @Banca-Copilot-demo/seguridad-agentica
 
-# ── El tipo que cambia el comportamiento de un repositorio ajeno: aprueba arquitectura ───────
-*.instructions.md           @Banca-Copilot-demo/arquitectura-agentica
-/instructions/              @Banca-Copilot-demo/arquitectura-agentica
-
+# NOTA: aqui habia dos reglas para `*.instructions.md` y `/instructions/`. Se retiraron cuando
+# `instructions` dejo de ser un tipo gobernado: no tiene canal de distribucion, no aparece en el
+# blueprint del catalogo ni en el enum de `kind` del envelope, y no existe ni un artefacto de ese tipo
+# en los repositorios. Una regla de CODEOWNERS sobre rutas que nadie crea no protege nada.
+#
 # ── Lo que declara el gobierno del paquete ──────────────────────────────────────────────────
 /GOVERNANCE.json            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica
 /.claude-plugin/            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica
