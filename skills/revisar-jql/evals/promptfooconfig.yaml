@@ -26,38 +26,30 @@ description: revisar-jql · revisa una consulta JQL y explica por que cada cambi
 prompts:
   - "{{consulta}}"
 
-# EL JUEZ ESTA DESACTIVADO A PROPOSITO, y su historia completa esta medida porque es la decision que mas
-# afecta al coste de G5.
+# EL JUEZ CORRE SOBRE LA MISMA SUSCRIPCION DE COPILOT, con el mismo cable. Es la restriccion mas fuerte
+# del proyecto -- Copilot es el UNICO proveedor que habra -- y por eso conviene dejar escrito como se
+# consiguio, porque estuvo a punto de darse por imposible.
 #
-# HAY DOS CREDENCIALES EN JUEGO Y NO SE HEREDAN ENTRE SI:
-#   - EL ARTEFACTO corre con la sesion del CLI de Copilot -- el login que ya existe, sin API key --.
-#     Funciona hoy.
-#   - EL JUEZ usa el proveedor de puntuacion de promptfoo, que por defecto es OpenAI y pide
-#     `OPENAI_API_KEY`. MEDIDO: sin ella falla con `invalid_grant`.
+# EL BLOQUEO NO ERA DE CREDENCIALES: era el LIMITE DE LA LINEA DE COMANDOS DE WINDOWS, unos 8191
+# caracteres. El prompt de un juez lleva la rubrica MAS la salida completa del artefacto, asi que lo pasa
+# con facilidad -- y al pasarlo el error es cripitco («The system cannot find the file specified»), que
+# parece un problema de instalacion y no de tamaño. Por eso se descarto primero.
 #
-# TRES VIAS PROBADAS PARA NO NECESITAR UNA CREDENCIAL NUEVA, con su resultado:
-#   1. Usar el mismo cable como juez (`--grader exec:...`) → FALLA. Un juez no es un proveedor de texto
-#      cualquiera; tiene que devolver un veredicto estructurado.
-#   2. `--grader anthropic:claude-agent-sdk` → FALLA con «Anthropic API key is not set»: la bandera solo
-#      acepta un identificador, y `apiKeyRequired: false` es una OPCION del proveedor.
-#   3. Declararlo en este archivo con esa opcion → quita el problema de la credencial, pero pide que el
-#      paquete `@anthropic-ai/claude-agent-sdk` se resuelva DESDE EL DIRECTORIO DE LA SUITE. Instalarlo
-#      global y apuntar `NODE_PATH` no basta: haria falta un `node_modules` dentro del repositorio de
-#      dominio. Es viable y esta sin decidir.
+# LO QUE LO DESBLOQUEO, dos cambios en el cable:
+#   1. la consulta viaja por ENTRADA ESTANDAR en vez de en `-p`: un pipe no tiene tope de longitud ni
+#      corta en los saltos de linea;
+#   2. el cable expone `call_api()`, el contrato de proveedor Python de promptfoo (`file://...py`), asi
+#      que el prompt entra como PARAMETRO DE FUNCION y no hay shell de por medio.
 #
-# MIENTRAS SE DECIDA, LA SUITE FUNCIONA SIN JUEZ -- y eso es precisamente lo que la regla 4 del estandar
-# compra. Con un ancla determinista por caso, una suite sigue dando senal util cuando el juez no esta
-# disponible: en la corrida donde el juez fallo por credenciales, el ancla del filtro de proyecto PASO.
-# Sin ancla, ese caso no habria dicho nada.
+# Como se invoca -- el mismo cable en los dos papeles:
+#   promptfoo eval -c <suite> -r file://<cable> --grader file://<cable>
 #
-# Para reactivarlo, descomentar y resolver la dependencia del punto 3:
+# NO HACE FALTA `OPENAI_API_KEY` (el proveedor de puntuacion por defecto de promptfoo es OpenAI y falla
+# con `invalid_grant`), ni la suscripcion de Claude Code, ni ninguna cuenta adicional. El consumo se acota
+# con `--max-ai-credits`.
 #
-# defaultTest:
-#   options:
-#     provider:
-#       id: anthropic:claude-agent-sdk
-#       config:
-#         apiKeyRequired: false
+# COSTE MEDIDO: ~45 s por caso sin juez, ~2 min con juez. El juez aproximadamente TRIPLICA el tiempo,
+# porque anade una llamada al modelo por criterio.
 
 tests:
   # ── POSITIVO ──────────────────────────────────────────────────────────────────────────────
@@ -86,12 +78,14 @@ tests:
       # Y lo que ninguna comprobacion mecanica alcanza, al juez: que EXPLIQUE, que es el requisito
       # explicito del artefacto -- «una consulta corregida sin la razon se copia una vez y el mismo
       # defecto reaparece en la siguiente».
-      # JUEZ DESACTIVADO (ver cabecera). Al reactivarlo, descomentar estas cuatro lineas:
-      # - type: llm-rubric
-      #   value: >
-      #     Explica POR QUE cada cambio mejora la consulta, no solo la reescribe. Menciona al menos dos
-      #     de estos problemas: falta el filtro de proyecto, el ORDER BY sobre un campo personalizado
-      #     obliga a ordenar en memoria, o la negacion amplia `status != Done` no aprovecha el indice.
+      # Y lo que ninguna comprobacion mecanica alcanza, al juez: que EXPLIQUE, que es el requisito
+      # explicito del artefacto -- «una consulta corregida sin la razon se copia una vez y el mismo
+      # defecto reaparece en la siguiente».
+      - type: llm-rubric
+        value: >
+          Explica POR QUE cada cambio mejora la consulta, no solo la reescribe. Menciona al menos dos
+          de estos problemas: falta el filtro de proyecto, el ORDER BY sobre un campo personalizado
+          obliga a ordenar en memoria, o la negacion amplia `status != Done` no aprovecha el indice.
 
   # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
   # Una consulta que ya trae `project` pero conserva el comodin por delante, que el SKILL.md tambien
@@ -110,11 +104,10 @@ tests:
         value:
           - comod
           - wildcard
-      # JUEZ DESACTIVADO (ver cabecera). Al reactivarlo, descomentar estas tres lineas:
-      # - type: llm-rubric
-      #   value: >
-      #     Identifica que el comodin al principio del termino de busqueda impide aprovechar el indice
-      #     de texto, y propone ponerlo al final o reformular.
+      - type: llm-rubric
+        value: >
+          Identifica que el comodin al principio del termino de busqueda impide aprovechar el indice
+          de texto, y propone ponerlo al final o reformular.
 
   # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
   # Un «near-miss»: comparte vocabulario -- Jira -- pero no es una consulta JQL. Es el caso que impide
