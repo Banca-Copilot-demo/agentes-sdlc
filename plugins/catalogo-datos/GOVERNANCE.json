@@ -12,8 +12,7 @@
     "skills": 0,
     "agents": 0,
     "prompts": 0,
-    "mcps": 1,
-    "instructions": 0
+    "mcps": 1
   },
   "mcp": {
     "servers": [

@@ -12,7 +12,6 @@
     "skills": 1,
     "agents": 0,
     "prompts": 1,
-    "mcps": 0,
-    "instructions": 0
+    "mcps": 0
   }
 }
