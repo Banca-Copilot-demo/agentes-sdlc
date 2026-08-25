@@ -1,30 +1,40 @@
-# CODEOWNERS — quien tiene que APROBAR segun QUE archivo se toca.
+# CODEOWNERS — quien tiene que APROBAR un cambio en este repositorio.
 #
-# COMO FUNCIONA: GitHub lee este archivo, mira que rutas cambia el pull request, y exige la
-# aprobacion de los duenos de CADA ruta tocada. Con la proteccion de rama activada («Require
-# review from Code Owners»), el merge se bloquea hasta tenerlas todas.
+# COMO FUNCIONA: GitHub lee este archivo, mira que rutas cambia el pull request, y exige la aprobacion
+# de los duenos de CADA ruta tocada.
 #
-# POR QUE HACE FALTA: sin este archivo, la clase de aprobador que el estandar exige es solo una
-# regla del gate, y el gate no puede impedir que apruebe quien no debe. Esto si.
+# REQUISITO QUE NO ESTA EN ESTE ARCHIVO Y SIN EL NO SIRVE DE NADA: la proteccion de rama tiene que
+# tener activado «Require review from Code Owners». Sin eso, GitHub solo SUGIERE revisores -- los
+# asigna automaticamente -- pero el merge no se bloquea. Es la diferencia entre una recomendacion y un
+# control.
 #
-# El ULTIMO patron que coincide gana, asi que lo especifico va abajo.
+# ── UNA SOLA REGLA, Y ES LA CONVENCION QUE BCP YA USA ───────────────────────────────────────
+#
+# Medido sobre los repositorios del cliente: sus CODEOWNERS reales tienen la forma
+#
+#     *  @BCP-Software-Engineering/<DOMINIO>-ADMIN  @BCP-Software-Engineering/devsecops  ...
+#
+# o sea el equipo del dominio Y un equipo transversal de seguridad, sobre TODO el repositorio -- no
+# solo sobre los archivos de riesgo --. Esto extiende esa misma convencion a un tipo de repositorio que
+# hoy no la tiene: ninguno de los repositorios de artefactos agenticos del cliente tiene CODEOWNERS, asi
+# que los artefactos que cambian COMO se construye el software tienen hoy menos control de aprobacion
+# que los microservicios.
+#
+# POR QUE UNA REGLA Y NO UNA POR TIPO DE RIESGO. En CODEOWNERS el ULTIMO patron que coincide gana, y sus
+# duenos son los UNICOS exigidos: no se suman a los de los patrones anteriores. Asi que una regla
+# especifica del tipo `.mcp.json @seguridad` no ANADE seguridad, RETIRA al equipo del dominio. Con una
+# sola linea que nombre a los dos, todo cambio necesita las dos aprobaciones y no hay forma de
+# equivocarse al anadir rutas.
+#
+# Y EVITA UN FALLO SILENCIOSO QUE ESTE ARCHIVO YA TUVO: sus reglas anteriores estaban ancladas a la raiz
+# (`/.mcp.json`, `/hooks/`) mientras todos los archivos de riesgo viven dentro de `plugins/`. No
+# coincidian con nada, asi que la aprobacion de seguridad sobre lo que EJECUTA CODIGO no existia, y
+# nadie lo notaba porque GitHub no avisa de una regla que no casa con ningun archivo.
+#
+# POR QUE SEGURIDAD TIENE QUE ESTAR EN EL GOBIERNO, y no solo en los archivos ejecutables:
+# `GOVERNANCE.json` CONTIENE el registro de la aprobacion de seguridad -- `approved_by`,
+# `security_review`, la fecha --. Si el equipo que escribe un hook fuera el unico que aprueba cambios a
+# ese archivo, podria firmarse a si mismo la revision. El gate comprueba que el bloque EXISTA; no puede
+# saber si quien lo escribio tenia derecho a hacerlo. Eso solo lo da esta regla.
 
-# Por defecto, el equipo del dominio.
-*                           @Banca-Copilot-demo/squad-sdlc
-
-# ── Los dos tipos que anaden capacidad EJECUTABLE: aprueba seguridad ────────────────────────
-# Un `mcp` expone herramientas de un tercero; un `hook` ejecuta codigo NUESTRO de forma
-# automatica, sin que nadie lo invoque. Los dos exigen firma de seguridad, y por eso ademas el
-# gate pide su bloque `approval` con `security_review`.
-/.mcp.json                  @Banca-Copilot-demo/squad-seguridad-appsec
-/hooks.json                 @Banca-Copilot-demo/squad-seguridad-appsec
-/hooks/                     @Banca-Copilot-demo/squad-seguridad-appsec
-
-# NOTA: aqui habia dos reglas para `*.instructions.md` y `/instructions/`. Se retiraron cuando
-# `instructions` dejo de ser un tipo gobernado: no tiene canal de distribucion, no aparece en el
-# blueprint del catalogo ni en el enum de `kind` del envelope, y no existe ni un artefacto de ese tipo
-# en los repositorios. Una regla de CODEOWNERS sobre rutas que nadie crea no protege nada.
-#
-# ── Lo que declara el gobierno del paquete ──────────────────────────────────────────────────
-/GOVERNANCE.json            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/plataforma-agentica
-/.claude-plugin/            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/plataforma-agentica
+*  @Banca-Copilot-demo/squad-sdlc  @Banca-Copilot-demo/squad-seguridad-appsec
