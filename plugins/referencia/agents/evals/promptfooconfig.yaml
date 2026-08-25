@@ -1,0 +1,84 @@
+# Suite de evals del agente `demo.sdlc.revisor`.
+#
+# SE ESCRIBE DISTINTO QUE LA DE UN SKILL, y esa es la parte que conviene entender antes de copiarla:
+#
+#   EN UN SKILL se evalua si SE ACTIVA cuando toca y que produce. La activacion es la mitad del
+#   comportamiento, porque el cliente decide solo si cargarlo.
+#
+#   EN UN AGENTE no hay activacion que medir: se INVOCA explicitamente -- aqui, con `--agent` --. Lo que
+#   se evalua es el RESULTADO FINAL, y, cuando importa, que herramientas uso y cuales NO.
+#
+# Y NO SE PUNTUA LA SECUENCIA DE PASOS, aunque sea la tentacion obvia. La guia de la industria lo
+# desaconseja expresamente: un agente encuentra caminos validos que quien escribio la prueba no
+# anticipo, asi que fijar el orden produce pruebas fragiles que fallan cuando el agente mejora. La
+# trayectoria sirve para DIAGNOSTICAR un fallo, no para decidir si pasa.
+#
+# COMO SE INVOCA -- la unica diferencia con la suite de un skill esta en la variable de entorno:
+#   EVALS_AGENTE=demo.sdlc.revisor \
+#   promptfoo eval -c <esta-suite> -r file://<cable> --grader file://<cable>
+#
+# NO DECLARA `providers`, por las mismas tres razones que la suite del skill: el cable vive en el
+# repositorio del estandar, una ruta absoluta la rechaza el gate de higiene, y asi un solo archivo sirve
+# para los dos clientes.
+description: demo.sdlc.revisor · revisa un cambio y prioriza los hallazgos por severidad
+
+prompts:
+  - "{{consulta}}"
+
+tests:
+  # ── RESULTADO ─────────────────────────────────────────────────────────────────────────────
+  # Lo que el agente promete: hallazgos con archivo, linea y severidad, ORDENADOS POR SEVERIDAD y no por
+  # archivo -- «quien lo lee quiere saber por donde empezar» --. Eso es comprobable.
+  - description: prioriza por severidad y situa cada hallazgo
+    vars:
+      consulta: |
+        Revisa este cambio:
+
+        --- src/pagos/Cobro.java
+        +  public void cobrar(String cuenta) {
+        +      String sql = "SELECT * FROM saldos WHERE cuenta = '" + cuenta + "'";
+        +      stmt.executeQuery(sql);
+        +      System.out.println("cobrando " + cuenta);
+        +  }
+    assert:
+      # ANCLA DETERMINISTA (regla 4): el defecto mas grave del fragmento es una inyeccion SQL, y
+      # nombrarla no depende del estilo de redaccion del modelo.
+      - type: icontains
+        value: SQL
+      # Y la promesa que distingue a ESTE agente de una revision cualquiera: que ordene por severidad.
+      - type: llm-rubric
+        value: >
+          Los hallazgos aparecen ORDENADOS POR SEVERIDAD, de mas grave a menos, y no agrupados por
+          archivo. Cada hallazgo de severidad alta identifica el archivo y la linea o el fragmento
+          concreto donde ocurre.
+
+  # ── ALCANCE ───────────────────────────────────────────────────────────────────────────────
+  # El `SKILL.md` del agente declara que si el cambio resulta ser una migracion de plataforma, DELEGA en
+  # vez de mezclarlo -- «mezclarlo produce un informe que no sirve para ninguna de las dos cosas» --.
+  - description: ante una migracion, no la planifica el mismo
+    vars:
+      consulta: |
+        Revisa este cambio: hemos migrado el modulo de pagos entero de Spring Boot a Quarkus.
+        Dime tambien como planificar la migracion del resto de modulos.
+    assert:
+      - type: llm-rubric
+        value: >
+          NO entrega un plan de migracion paso a paso para el resto de modulos. Puede revisar el cambio
+          presentado, y puede indicar que planificar la migracion corresponde a otra capacidad, pero no
+          asume esa tarea.
+
+  # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
+  # Un agente invocado explicitamente no puede «no activarse», asi que el caso negativo es de OTRA
+  # naturaleza que en un skill: se comprueba que se ABSTENGA de lo que no le corresponde en lugar de
+  # inventarse un trabajo. Es la version para agentes de «artefactos que siempre encuentran algo que
+  # hacer».
+  - description: sin cambio que revisar, lo pide en vez de inventarse hallazgos
+    vars:
+      consulta: "Hola, que tal? Cuentame que sabes hacer."
+    assert:
+      - type: not-contains
+        value: "severidad:"
+      - type: llm-rubric
+        value: >
+          No inventa hallazgos ni informa de una revision que no se le ha pedido. Responde explicando su
+          funcion, o pide el cambio a revisar.
