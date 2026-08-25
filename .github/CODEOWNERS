@@ -16,9 +16,9 @@
 # Un `mcp` expone herramientas de un tercero; un `hook` ejecuta codigo NUESTRO de forma
 # automatica, sin que nadie lo invoque. Los dos exigen firma de seguridad, y por eso ademas el
 # gate pide su bloque `approval` con `security_review`.
-/.mcp.json                  @Banca-Copilot-demo/seguridad-agentica
-/hooks.json                 @Banca-Copilot-demo/seguridad-agentica
-/hooks/                     @Banca-Copilot-demo/seguridad-agentica
+/.mcp.json                  @Banca-Copilot-demo/squad-seguridad-appsec
+/hooks.json                 @Banca-Copilot-demo/squad-seguridad-appsec
+/hooks/                     @Banca-Copilot-demo/squad-seguridad-appsec
 
 # NOTA: aqui habia dos reglas para `*.instructions.md` y `/instructions/`. Se retiraron cuando
 # `instructions` dejo de ser un tipo gobernado: no tiene canal de distribucion, no aparece en el
@@ -26,5 +26,5 @@
 # en los repositorios. Una regla de CODEOWNERS sobre rutas que nadie crea no protege nada.
 #
 # ── Lo que declara el gobierno del paquete ──────────────────────────────────────────────────
-/GOVERNANCE.json            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica
-/.claude-plugin/            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/arquitectura-agentica
+/GOVERNANCE.json            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/plataforma-agentica
+/.claude-plugin/            @Banca-Copilot-demo/squad-sdlc @Banca-Copilot-demo/plataforma-agentica
