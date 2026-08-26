@@ -35,3 +35,6 @@ jobs:
       # el etiquetado, asi que no hay ninguna credencial nueva que gestionar.
       app-id: ${{ secrets.APP_ID_AGENTICO }}
       app-key: ${{ secrets.APP_KEY_AGENTICO }}
+      # Decide la CERTIFICACION, no la publicacion: sin el, el artefacto se publica igual y se queda
+      # en Conforme. Solo hace falta mientras la organizacion no tenga asientos de Copilot propios.
+      copilot-token: ${{ secrets.COPILOT_GITHUB_TOKEN }}
