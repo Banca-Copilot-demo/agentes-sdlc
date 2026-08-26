@@ -18,6 +18,11 @@ permissions:
   contents: write
   id-token: write
   attestations: write
+  # Lo pide la evaluacion que decide la certificacion. Un workflow reutilizable NO puede pedir mas
+  # permisos de los que le concede su llamador: sin esta linea, la publicacion entera muere en
+  # `startup_failure` con «The workflow is requesting 'copilot-requests: write', but is only allowed
+  # 'copilot-requests: none'» -- y muere ANTES de sellar nada, aunque el sellado no necesite Copilot.
+  copilot-requests: write
 
 jobs:
   publicar:
