@@ -8,6 +8,9 @@ permissions:
   contents: read
   pull-requests: write
   checks: write
+  # Lo pide la evaluacion para poder solicitar inferencia. Sin el, el CLI falla con un error que no
+  # nombra al permiso.
+  copilot-requests: write
 
 jobs:
   conformidad:
@@ -19,3 +22,21 @@ jobs:
     secrets:
       app-id:  ${{ secrets.APP_ID_AGENTICO }}
       app-key: ${{ secrets.APP_KEY_AGENTICO }}
+
+  # SE EJECUTA DESPUES DE LA CONFORMIDAD, NUNCA EN PARALELO, y el `needs` es lo que lo garantiza.
+  #
+  # POR QUE EL ORDEN IMPORTA. Los controles deterministas no consumen modelo y tardan segundos; una
+  # suite de evaluacion gasta cuota de inferencia. Evaluar un artefacto cuyo frontmatter esta mal
+  # formado es pagar por descubrir algo que el gate ya sabia. Es ademas lo que el lineamiento dice:
+  # los puntos de control van en orden de COSTE CRECIENTE.
+  #
+  # QUE BLOQUEA Y QUE NO. Un repositorio sin suites salta este trabajo, y un trabajo saltado reporta
+  # «Success»: no impide mergear ni siendo comprobacion requerida. Uno que las trae esta declarando
+  # que quiere certificar, y entonces una suite en rojo detiene el cambio.
+  comportamiento:
+    needs: conformidad
+    uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/evaluar.yml@main
+    secrets:
+      # Solo mientras la organizacion no tenga asientos de Copilot propios: el token de Actions
+      # hereda esa carencia y el CLI responde «Access denied by policy settings».
+      copilot-token: ${{ secrets.COPILOT_GITHUB_TOKEN }}
