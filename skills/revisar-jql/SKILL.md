@@ -48,3 +48,5 @@ si.
 
 La consulta reescrita y, por cada cambio, **por que** era un problema. Una consulta corregida sin la
 razon se copia una vez y el mismo defecto reaparece en la siguiente.
+
+<!-- prueba de acotado -->
