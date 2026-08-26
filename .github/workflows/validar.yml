@@ -10,7 +10,6 @@ permissions:
   checks: write
   # Lo pide la evaluacion para poder solicitar inferencia. Sin el, el CLI falla con un error que no
   # nombra al permiso.
-  copilot-requests: write
 
 jobs:
   conformidad:
