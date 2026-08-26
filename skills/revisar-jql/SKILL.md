@@ -44,6 +44,10 @@ de leer.
 **Comodin por delante.** `summary ~ "*pago"` no aprovecha el indice de texto. Con el comodin al final
 si.
 
+**Sin acotar en el tiempo.** Una consulta sin `created >=` ni `updated >=` crece con el historico: hoy
+responde y dentro de un ano no. Es el unico defecto de esta lista que no se nota al escribirla, porque
+aparece con el paso del tiempo y no con el volumen del momento.
+
 ## Que devolver
 
 La consulta reescrita y, por cada cambio, **por que** era un problema. Una consulta corregida sin la
