@@ -1,0 +1,77 @@
+# Suite de evals de `demo.sdlc.planificar-migracion`.
+#
+# CO-LOCALIZADA con el artefacto que evalua, en `<artefacto>/evals/`. Una suite lejos de su artefacto se
+# queda atras cuando el artefacto cambia, y nadie lo nota porque el archivo sigue ahi y sigue pasando.
+#
+# NO DECLARA `providers` A PROPOSITO: el proveedor se inyecta al ejecutar con `-r`. El puente vive en el
+# repositorio del estandar y esta suite en uno de dominio, asi que una ruta relativa asumiria que estan
+# clonados como hermanos y una absoluta llevaria el nombre de una maquina -- que el gate de higiene
+# rechaza --. Asi ademas un solo archivo sirve para los dos clientes.
+#
+# LO QUE ESTA SUITE COMPRUEBA es el contrato que el SKILL.md declara: tres secciones en orden,
+# estimaciones como rango con su supuesto, y preguntar en vez de asumir un orden de riesgo. No se
+# comprueba «que el plan sea bueno», que no es una afirmacion contrastable contra una salida.
+description: demo.sdlc.planificar-migracion · planifica una migracion y ordena los pasos por riesgo
+
+prompts:
+  - "{{consulta}}"
+
+tests:
+  # ── CAMINO ESPERADO ───────────────────────────────────────────────────────────────────────
+  # El caso central: hay datos suficientes, asi que debe producirse el plan con sus tres secciones.
+  - description: servicio con dependencias descritas → plan con dependencias clasificadas
+    vars:
+      consulta: |
+        Necesito migrar el servicio de pagos a la plataforma destino. Hoy usa una base de datos
+        PostgreSQL propia, publica eventos a una cola Kafka del equipo de riesgos, y lee la
+        configuracion de un servidor de configuracion que en la plataforma destino no existe.
+        Dame el plan.
+    assert:
+      # ANCLA DETERMINISTA. El SKILL.md exige clasificar cada dependencia como bloqueante o diferible,
+      # asi que la palabra aparece si hizo su trabajo. Sin ancla, un caso depende por completo del
+      # juez: cuando al juez le falta credencial o su proveedor falla, un caso con ancla SIGUE dando
+      # informacion y uno sin ancla no dice nada.
+      - type: icontains
+        value: bloqueante
+      # Y al juez lo que ninguna comprobacion mecanica alcanza. Redactado como afirmacion comprobable
+      # contra la salida, no como «esta bien hecho».
+      - type: llm-rubric
+        value: >
+          Entrega las tres secciones que el artefacto promete -- dependencias, pasos ordenados por
+          riesgo y esfuerzo -- y clasifica el servidor de configuracion como BLOQUEANTE, porque en la
+          plataforma destino no existe y el servicio no arranca sin el. El esfuerzo aparece como rango,
+          no como un numero unico.
+
+  # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
+  # La regla mas dificil de cumplir del artefacto, y la que mas valor tiene: «si falta informacion para
+  # ordenar el riesgo, pidela en vez de asumir un orden». Un modelo servicial tiende a inventar el plan
+  # igualmente, asi que este caso mide justamente lo que el artefacto añade sobre el modelo base.
+  - description: peticion sin datos suficientes → pide informacion en vez de inventar el orden
+    vars:
+      consulta: "Tengo que migrar un microservicio. Dame el plan y el orden de los pasos."
+    assert:
+      # El ancla es la marca de una pregunta. Un plan inventado no la lleva.
+      - type: icontains
+        value: "?"
+      - type: llm-rubric
+        value: >
+          Pide informacion que le falta -- por ejemplo que dependencias tiene el servicio, cual es la
+          plataforma destino o que se sabe de sus datos -- en lugar de entregar un plan completo con un
+          orden de riesgo inventado. Es aceptable que ofrezca una estructura general, pero no que
+          presente un orden de pasos concreto como si conociera el servicio.
+
+  # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
+  # Un «near-miss»: comparte vocabulario -- migracion -- pero no pide un plan de migracion de un
+  # servicio. Es el caso que impide que una `description` demasiado amplia capture tareas ajenas, y la
+  # omision mas frecuente en las suites reales.
+  #
+  # SE COMPRUEBA POR EL CONTENIDO y no por un marcador de activacion: los marcadores de carga de skill
+  # no aparecen de forma fiable en la salida, asi que una asercion sobre ellos se cumpliria SIEMPRE --
+  # una comprobacion vacia que se lee como cobertura --. Si el skill se activara indebidamente,
+  # produciria su plan, y un plan de este artefacto clasifica dependencias.
+  - description: NO produce un plan de migracion ante una pregunta conceptual
+    vars:
+      consulta: "Explicame en dos frases que es una migracion de base de datos y por que se hace."
+    assert:
+      - type: not-contains
+        value: bloqueante
