@@ -9,10 +9,8 @@
   "data_classification": "internal",
   "version": "1.0.2",
   "standard_version": "8.0.0",
-  "artifacts": {
-    "skills": 1
-  },
+  "artifacts": {},
   "x_extensions": {
-    "por_que_existe": "Gobierna el CONJUNTO SUELTO de este repositorio: los artefactos que viven en la raiz, fuera de todo plugin. No es el gobierno del repositorio ni de los plugins -- cada plugin tiene el suyo en plugins/<nombre>/GOVERNANCE.json -- sino de una unidad publicable mas. Su `version` es lo que da a esos artefactos etiqueta, paquete, atestacion y ficha en el catalogo; sin ella el gate los bloquea porque nadie los publicaria. Lo que este conjunto NO tiene es entrada en el marketplace, y es correcto: las entradas de un marketplace son plugins."
+    "por_que_existe": "Gobierna el CONJUNTO SUELTO de este repositorio -- los artefactos de la raiz que NO traen manifiesto propio -- y ademas es el gobierno que HEREDA cada artefacto suelto publicado como unidad independiente, del que toma dueno, dominio y clasificacion. Hoy el conjunto esta VACIO: `revisar-jql` paso a publicarse como su propia unidad (`skills/revisar-jql/.claude-plugin/plugin.json`), con version, etiqueta, digesto y entrada de catalogo propios. La `version` de aqui se conserva porque es lo que daria etiqueta al conjunto si alguien anadiera un suelto sin manifiesto; el inventario queda vacio porque ya no publica ningun artefacto. Un artefacto suelto SIN manifiesto no entra al catalogo -- medido contra los dos clientes: falla con 'No plugin.json found in repository' -- y lo que no esta en el catalogo no lo gobierna el estado."
   }
 }

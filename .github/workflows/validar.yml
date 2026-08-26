@@ -12,3 +12,10 @@ permissions:
 jobs:
   conformidad:
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/validar.yml@main
+    # SOLO ESTOS DOS, nombrados, y no `secrets: inherit`: el validador necesita leer los EQUIPOS de la
+    # organizacion para comprobar que el `owner_team` declarado exista, y el token del repositorio no
+    # puede -- responde 403 --. Heredar en bloque le entregaria ademas las credenciales de Port y de la
+    # boveda, que no necesita para nada.
+    secrets:
+      app-id:  ${{ secrets.APP_ID_AGENTICO }}
+      app-key: ${{ secrets.APP_KEY_AGENTICO }}
