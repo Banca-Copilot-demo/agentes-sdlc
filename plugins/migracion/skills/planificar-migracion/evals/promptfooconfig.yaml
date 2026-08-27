@@ -73,5 +73,9 @@ tests:
     vars:
       consulta: "Explicame en dos frases que es una migracion de base de datos y por que se hace."
     assert:
-      - type: not-contains
+      # ROTURA DELIBERADA Y TEMPORAL, para medir que una unidad en rojo ya NO arrastra a las demas.
+      # La asercion esta invertida a proposito: ante una pregunta conceptual el artefacto NO debe
+      # clasificar dependencias, asi que exigir que diga «bloqueante» no puede pasar. Se retira antes
+      # de mergear.
+      - type: icontains
         value: bloqueante

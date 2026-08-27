@@ -29,10 +29,29 @@ jobs:
   # formado es pagar por descubrir algo que el gate ya sabia. Es ademas lo que el lineamiento dice:
   # los puntos de control van en orden de COSTE CRECIENTE.
   #
-  # QUE BLOQUEA Y QUE NO. Un repositorio sin suites salta este trabajo, y un trabajo saltado reporta
-  # «Success»: no impide mergear ni siendo comprobacion requerida. Uno que las trae esta declarando
-  # que quiere certificar, y entonces una suite en rojo detiene el cambio.
+  # QUE BLOQUEA Y QUE NO. Un repositorio sin suites no abre ninguna celda de matriz, y el veredicto
+  # lo dice como `sin_suites` en vez de como «pasaron todas»: no impide mergear. Uno que las trae
+  # esta declarando que quiere certificar, y entonces una suite en rojo detiene el cambio -- solo la
+  # de la unidad afectada: cada unidad emite ahora su propia comprobacion, con su nombre --.
+  #
+  # SOLO EN LA SOLICITUD DE CAMBIO, y esta linea es la que retira una evaluacion entera. Este
+  # workflow se dispara tambien en el `push` a `main`, asi que sin la condicion TODO cambio se
+  # evaluaba DOS veces -- una en la rama y otra en el merge -- sobre el mismo contenido: duplicaba el
+  # gasto del unico token de inferencia de la organizacion y multiplicaba las ocasiones de que el
+  # veredicto se contradijera a si mismo (MEDIDO sobre el MISMO contenido: 3 de 3, luego 2 de 3,
+  # luego verde).
+  #
+  # LA CONFORMIDAD SI SIGUE CORRIENDO EN LOS DOS: es determinista, gratis y tarda segundos.
+  #
+  # LA PUBLICACION NO SE QUEDA SIN VEREDICTO. El merge con squash crea un commit nuevo en `main`
+  # -- otro sha, el mismo contenido -- y el guardian de la promocion resuelve de que pull request
+  # nacio ese commit para leer las comprobaciones de la rama, donde si se evaluo. Por eso hace falta
+  # `pull-requests: read` en el workflow de publicacion.
+  #
+  # EL WORKFLOW LLAMADO LO IMPIDE ADEMAS POR SU CUENTA -- fuera de un pull request su deteccion no
+  # arranca y devuelve `no_procede` --. Esta condicion es la que evita encender el runner siquiera.
   comportamiento:
+    if: github.event_name == 'pull_request'
     needs: conformidad
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/evaluar.yml@main
     secrets:

@@ -27,6 +27,18 @@ permissions:
   # ANTES de sellar nada -- exactamente lo que paso con `copilot-requests` --. Sin esta linea la
   # publicacion se completa igual y el artefacto se queda en Conforme, con la razon escrita en el log.
   checks: read
+  # LO NECESITA EL MISMO GUARDIAN, para saber QUE COMMIT SE EVALUO. La suite corre una sola vez, en
+  # la solicitud de cambio, o sea sobre el sha de la RAMA; el merge con squash crea un commit NUEVO
+  # en `main` -- otro sha, el mismo contenido -- y es ese el que se etiqueta. Preguntar por las
+  # comprobaciones del commit etiquetado seria preguntar por un commit que nadie evaluo, y hasta
+  # ahora colaba solo porque el push a `main` lo reevaluaba todo: la respuesta llegaba de una segunda
+  # pasada que duplicaba el gasto de inferencia y que ya se retiro.
+  #
+  # `/commits/{sha}/pulls` devuelve la solicitud de cambio que introdujo el commit, y de ahi sale el
+  # sha donde vive la medicion. Tambien es una LECTURA: la publicacion no escribe en ningun pull
+  # request. Sin esta linea la consulta responde 403, se avisa, y el artefacto se queda en Conforme
+  # con la razon escrita -- nunca en verde por no haber podido comprobar --.
+  pull-requests: read
 
 jobs:
   publicar:
