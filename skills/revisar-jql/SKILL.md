@@ -8,7 +8,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.3"
+  version: "0.2.4"
   standard_version: "8.0.0"
 ---
 
@@ -26,7 +26,7 @@ peticion. El plugin es una decision de empaquetado, y aqui la respuesta es que n
 
 Lo que se pierde por estar suelto es una sola cosa: **no tiene entrada en el marketplace**, porque las
 entradas de un marketplace son plugins. Todo lo demas lo conserva -- dueno, version, estado, etiqueta,
-paquete, atestacion y ficha en el catalogo -- porque el gobierno viaja en su propia metadata.
+paquete, atestacion y ficha en Port -- porque el gobierno viaja en su propia metadata.
 
 ## Que comprobar en una consulta
 

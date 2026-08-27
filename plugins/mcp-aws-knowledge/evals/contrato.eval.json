@@ -17,7 +17,7 @@
       "checks": [
         {
           "type": "mcp_connects",
-          "note": "Es la primera cosa que deja de funcionar cuando un servidor remoto se retira, y hasta que alguien lo intenta el catalogo sigue diciendo que esta disponible. Sin este caso, un servidor muerto figura como aprobado y vigente hasta su `review_by`, o sea hasta 2027."
+          "note": "Es la primera cosa que deja de funcionar cuando un servidor remoto se retira, y hasta que alguien lo intenta Port sigue diciendo que esta disponible. Sin este caso, un servidor muerto figura como aprobado y vigente hasta su `review_by`, o sea hasta 2027."
         }
       ]
     },

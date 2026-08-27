@@ -52,7 +52,7 @@ jobs:
       port-client-secret: ${{ secrets.PORT_CLIENT_SECRET }}
       # La App NO escribe en el repositorio del indice: solo acuna un token efimero, acotado a ese
       # repositorio, para disparar alli un EVENTO que despierta su workflow. Los permisos que
-      # escriben el catalogo son INTERNOS de ese repositorio. Son las mismas credenciales que ya usa
+      # escriben el marketplace son INTERNOS de ese repositorio. Son las mismas credenciales que ya usa
       # el etiquetado, asi que no hay ninguna credencial nueva que gestionar.
       app-id: ${{ secrets.APP_ID_AGENTICO }}
       app-key: ${{ secrets.APP_KEY_AGENTICO }}

@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
 
-      - name: Que hay ya en el catalogo
+      - name: Que hay ya en Port
         env:
           ID: ${{ secrets.PORT_CLIENT_ID }}
           SECRETO: ${{ secrets.PORT_CLIENT_SECRET }}
