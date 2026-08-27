@@ -84,6 +84,55 @@ tests:
           cabecera de trazabilidad, datos reales en ejemplos y paginacion -- ni propone mejoras de
           estilo que el artefacto no exige.
 
+  # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
+  # UN SOLO DEFECTO, y de los que no saltan a la vista. El primer caso presenta un contrato con varios
+  # problemas a la vez: ahi basta con que el artefacto encuentre ALGUNO para que la asercion pase, asi
+  # que no distingue «los revisa todos» de «se queda en el primero». Este trae un contrato limpio salvo
+  # por la paginacion ausente en una coleccion, que es el lineamiento que mas tarde se nota -- la
+  # respuesta funciona el primer dia y se degrada sola segun crece la coleccion --.
+  - description: coleccion sin paginacion → lo senala aunque el resto del contrato este bien
+    vars:
+      consulta: |
+        Revisa este contrato OpenAPI:
+        openapi: 3.0.0
+        info: { title: API de clientes, version: 1.0.0 }
+        paths:
+          /clientes:
+            get:
+              summary: Lista los clientes
+              operationId: listarClientes
+              responses:
+                '200': { description: OK }
+                '400': { description: Peticion invalida }
+    assert:
+      # ANCLA DETERMINISTA: la RUTA, que es lo unico que el artefacto promete citar siempre -- «cita la
+      # ruta exacta de cada hallazgo» --. La primera version de este caso anclaba en `icontains:
+      # paginacion` y FALLABA por una razon que no tenia nada que ver con el artefacto: la salida
+      # escribe «paginación» con tilde, o «paging». Un ancla sobre una palabra que el artefacto no se
+      # compromete a escribir literalmente acusa al artefacto de un defecto de la asercion.
+      - type: icontains
+        value: /clientes
+      # Y las variantes del termino, que son varias y todas validas.
+      - type: contains-any
+        value:
+          - paginacion
+          - paginación
+          - pagination
+          - paging
+          - limit
+          - cursor
+      # LA RUBRICA PIDE LO QUE EL ARTEFACTO PROMETE, y su primera version no lo hacia: exigia explicar
+      # la CONSECUENCIA de la paginacion ausente. El artefacto no promete eso -- promete «agrupa por
+      # severidad y cita la ruta exacta», y ademas dice «no rellenes con prosa» --, asi que la rubrica
+      # le reprochaba no hacer algo que tiene instruccion explicita de no hacer. MEDIDO: el juez lo
+      # dejo por escrito -- «it does not explain the consequence... it merely flags the missing paging
+      # parameters» --, o sea que el artefacto hizo exactamente su trabajo.
+      - type: llm-rubric
+        value: >
+          Senala que la coleccion `/clientes` no declara paginacion, citando la ruta. No hace falta que
+          explique consecuencias ni que proponga una forma concreta de paginar: el artefacto reporta
+          hallazgos, no los razona.
+
   # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
   # Un «near-miss»: comparte vocabulario -- API, contrato -- pero no pide revisar una especificacion.
   # Es el caso que impide que una `description` demasiado amplia capture tareas ajenas, y la omision
