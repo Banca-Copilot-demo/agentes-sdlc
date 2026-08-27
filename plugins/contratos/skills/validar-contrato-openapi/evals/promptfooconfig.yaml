@@ -1,0 +1,101 @@
+# Suite de evals de `demo.sdlc.validar-contrato-openapi`.
+#
+# CO-LOCALIZADA con el artefacto que evalua, en `<artefacto>/evals/`. Una suite lejos de su artefacto se
+# queda atras cuando el artefacto cambia, y nadie lo nota porque el archivo sigue ahi y sigue pasando.
+#
+# NO DECLARA `providers` A PROPOSITO: el proveedor se inyecta al ejecutar con `-r`. El puente vive en el
+# repositorio del estandar y esta suite en uno de dominio, asi que una ruta relativa asumiria que estan
+# clonados como hermanos y una absoluta llevaria el nombre de una maquina -- que el gate de higiene
+# rechaza --. Asi ademas un solo archivo sirve para los dos clientes.
+#
+# LO QUE ESTA SUITE COMPRUEBA es el contrato que el SKILL.md declara: que REPORTA en vez de reescribir,
+# que cita la ruta exacta de cada hallazgo, y que no inventa lineamientos fuera de su lista. No se
+# comprueba «que la revision sea buena», que no es una afirmacion contrastable contra una salida.
+description: demo.sdlc.validar-contrato-openapi · revisa un contrato OpenAPI contra los lineamientos
+
+prompts:
+  - "{{consulta}}"
+
+tests:
+  # ── CAMINO ESPERADO ───────────────────────────────────────────────────────────────────────
+  # Un contrato con tres defectos de la lista a la vez: ruta sin version, nombre en singular y sin los
+  # codigos de error obligatorios. Debe encontrarlos y citar la ruta.
+  - description: contrato con defectos de la lista → los senala citando la ruta
+    vars:
+      consulta: |
+        Revisa este contrato OpenAPI contra los lineamientos:
+
+        openapi: 3.0.0
+        info: { title: Cuentas, version: 1.0.0 }
+        paths:
+          /cuenta:
+            get:
+              summary: Lista las cuentas del cliente
+              responses:
+                '200': { description: OK }
+    assert:
+      # ANCLA DETERMINISTA. El hallazgo mas objetivo de los tres: el SKILL.md exige que toda ruta
+      # empiece por `/v{n}/`, y esta no lo hace. Sin ancla, el caso dependeria por completo del juez:
+      # cuando al juez le falta credencial o su proveedor falla, un caso con ancla SIGUE dando
+      # informacion y uno sin ancla no dice nada.
+      - type: icontains
+        value: "/cuenta"
+      # Y al juez lo que ninguna comprobacion mecanica alcanza. Redactado como afirmacion comprobable
+      # contra la salida, no como «esta bien hecho».
+      - type: llm-rubric
+        value: >
+          Senala al menos dos de estos tres defectos: que la ruta no empieza por `/v1/`, que `cuenta`
+          deberia ir en plural, y que faltan los codigos de error obligatorios 400, 401 y 500. Cita la
+          ruta afectada. NO reescribe el contrato corregido: reporta los hallazgos y deja la correccion
+          al equipo dueno.
+
+  # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
+  # Un contrato que cumple. La regla del SKILL.md es explicita: «si no hay hallazgos, dilo en una linea:
+  # no rellenes con prosa». Un modelo servicial tiende a encontrar algo que decir igualmente, asi que
+  # este caso mide justo lo que el artefacto añade sobre el modelo base.
+  - description: contrato correcto → lo dice sin inventar hallazgos
+    vars:
+      consulta: |
+        Revisa este contrato OpenAPI contra los lineamientos:
+
+        openapi: 3.0.0
+        info: { title: Cuentas corrientes, version: 1.0.0 }
+        paths:
+          /v1/cuentas-corrientes:
+            get:
+              summary: Lista las cuentas corrientes
+              parameters:
+                - { name: X-Request-Id, in: header, required: true, schema: { type: string } }
+                - { name: limit, in: query, schema: { type: integer } }
+                - { name: cursor, in: query, schema: { type: string } }
+              responses:
+                '200': { description: OK }
+                '400': { description: Peticion invalida }
+                '401': { description: No autenticado }
+                '500': { description: Error interno }
+    assert:
+      # El ancla es la marca de que no reescribio el contrato: un contrato reescrito trae `openapi:`.
+      - type: not-contains
+        value: "openapi: 3.0.0"
+      - type: llm-rubric
+        value: >
+          Concluye que el contrato cumple los lineamientos, de forma breve. NO inventa hallazgos que no
+          esten en la lista del artefacto -- versionado en la ruta, nomenclatura, codigos de error,
+          cabecera de trazabilidad, datos reales en ejemplos y paginacion -- ni propone mejoras de
+          estilo que el artefacto no exige.
+
+  # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
+  # Un «near-miss»: comparte vocabulario -- API, contrato -- pero no pide revisar una especificacion.
+  # Es el caso que impide que una `description` demasiado amplia capture tareas ajenas, y la omision
+  # mas frecuente en las suites reales.
+  #
+  # SE COMPRUEBA POR EL CONTENIDO y no por un marcador de activacion: los marcadores de carga de skill
+  # no aparecen de forma fiable en la salida, asi que una asercion sobre ellos se cumpliria SIEMPRE --
+  # una comprobacion vacia que se lee como cobertura --. Si el skill se activara indebidamente,
+  # produciria su informe, y un informe de este artefacto cita lineamientos numerados.
+  - description: NO revisa ningun contrato ante una pregunta conceptual
+    vars:
+      consulta: "Explicame en dos frases que es OpenAPI y para que sirve."
+    assert:
+      - type: not-contains
+        value: "Versionado en la ruta"
