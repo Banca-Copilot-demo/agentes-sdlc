@@ -8,33 +8,23 @@
   "data_classification": "internal",
   "standard_version": "8.0.0",
   "artifacts": {
-    "mcps": 1
+    "skills": [],
+    "agents": [],
+    "prompts": []
   },
   "mcp": {
-    "servers": [
-      {
-        "name": "aws-knowledge",
-        "source": {
-          "kind": "remote",
-          "ref": "https://knowledge-mcp.global.api.aws",
-          "version_pin": "sin-version"
-        },
-        "transport": "http",
-        "endpoint": "https://knowledge-mcp.global.api.aws",
-        "write_operations": false,
-        "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
-        "tools_digest_date": "2026-08-23"
+    "aws-knowledge": {
+      "write_operations": false,
+      "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
+      "tools_digest_date": "2026-08-23",
+      "credentials": [],
+      "approval": {
+        "approved_by": "squad-plataforma-datos",
+        "date": "2026-08-23",
+        "review_by": "2027-08-23",
+        "security_review": true,
+        "notes": "Servidor publico de solo lectura, sin credencial. La revision es a 12 meses y no a 6 porque `write_operations` es false: el plazo sale del perfil de riesgo DE ESTE servidor, que es justo lo que permite hacer una aprobacion por servidor -- con la lista posicional anterior, UNA aprobacion cubria todos y no se le podia dar a cada uno el suyo."
       }
-    ],
-    "credentials": {
-      "mechanism": "none"
-    },
-    "approval": {
-      "approved_by": "squad-plataforma-datos",
-      "date": "2026-08-23",
-      "review_by": "2027-08-23",
-      "security_review": true,
-      "notes": "Servidor publico de solo lectura, sin credencial. La revision es a 12 meses y no a 6 porque `write_operations` es false: el plazo se toma del perfil de riesgo DE ESTE servidor, que es justo lo que un plugin por servidor permite hacer."
     }
   }
 }

@@ -7,9 +7,9 @@ metadata:
   owner_team: squad-sdlc
   owner_contact: squad-sdlc@ejemplo.dev
   status: draft
-  version: "0.1.0"
+  version: "0.2.0"
   data_classification: internal
-  standard_version: "7.0.0"
+  standard_version: "8.0.0"
 ---
 
 # Planificar una migracion

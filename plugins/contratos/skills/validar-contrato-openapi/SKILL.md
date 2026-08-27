@@ -8,8 +8,8 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "1.0.0"
-  standard_version: "7.0.0"
+  version: "0.2.0"
+  standard_version: "8.0.0"
 ---
 
 # Validar un contrato OpenAPI contra los lineamientos de APIs de la organizacion
