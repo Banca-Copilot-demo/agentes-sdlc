@@ -8,7 +8,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.0"
+  version: "0.2.1"
   standard_version: "8.0.0"
 ---
 
@@ -47,6 +47,10 @@ si.
 **Sin acotar en el tiempo.** Una consulta sin `created >=` ni `updated >=` crece con el historico: hoy
 responde y dentro de un ano no. Es el unico defecto de esta lista que no se nota al escribirla, porque
 aparece con el paso del tiempo y no con el volumen del momento.
+
+**Subconsulta evitable.** Una clausula `IN (subquery)` obliga a resolver la consulta interna entera
+antes de empezar la externa. Cuando el resultado interno es estable -- una lista de proyectos, un
+conjunto de tipos --, enumerarlo evita recorrerlo en cada ejecucion.
 
 ## Que devolver
 
