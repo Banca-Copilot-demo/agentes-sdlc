@@ -6,40 +6,23 @@
     "contact": "squad-sdlc@ejemplo.dev"
   },
   "data_classification": "internal",
-  "standard_version": "7.0.0",
+  "standard_version": "8.0.0",
   "artifacts": {
-    "skills": 0,
-    "agents": 0,
-    "prompts": 0,
-    "mcps": 1
+    "skills": [],
+    "agents": [],
+    "prompts": []
   },
   "mcp": {
-    "servers": [
-      {
-        "name": "catalogo-datos",
-        "source": {
-          "kind": "pypi",
-          "ref": "ejemplo-catalogo-datos-mcp",
-          "version_pin": "0.4.1"
-        },
-        "transport": "stdio",
-        "write_operations": false
+    "catalogo-datos": {
+      "write_operations": false,
+      "credentials": [],
+      "approval": {
+        "approved_by": "squad-plataforma-datos",
+        "date": "2026-08-23",
+        "review_by": "2026-11-23",
+        "security_review": true,
+        "notes": "Servidor propio del dominio, de solo lectura y con version fijada -- el fijado lo DERIVA el gate del .mcp.json, que es el archivo que ejecuta el cliente, en vez de compararlo contra una copia que puede quedarse atras. La custodia del secreto se declaraba aqui con el `mechanism: secret-ref` de la forma antigua; se retira porque este servidor no usa ningun ${VAR} en su .mcp.json, asi que declarar una credencial que el archivo no pide seria describir un acceso que nadie ejerce. Si el servidor pasa a pedirla, va en `credentials` con su `ownership`, y entonces el gate la contrasta."
       }
-    ],
-    "credentials": {
-      "mechanism": "secret-ref",
-      "ownership": {
-        "credential_owner": "squad-plataforma-datos",
-        "access_request_url": "https://ejemplo.dev/solicitar/catalogo-datos",
-        "secret_ref": "secret/agentico/mcp/demo.sdlc.catalogo-datos"
-      }
-    },
-    "approval": {
-      "approved_by": "squad-plataforma-datos",
-      "date": "2026-08-23",
-      "review_by": "2026-11-23",
-      "security_review": true,
-      "notes": "Servidor propio del dominio, de solo lectura y con version fijada. El servidor de AWS que este bloque declaraba antes se fue a su propio plugin: con dos servidores en un archivo, UNA aprobacion cubria los dos y no se podia aplicar a cada uno el plazo de revision de su perfil de riesgo."
     }
   }
 }

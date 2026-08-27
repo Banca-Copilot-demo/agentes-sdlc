@@ -6,38 +6,25 @@
     "contact": "squad-sdlc@ejemplo.dev"
   },
   "data_classification": "internal",
-  "standard_version": "7.0.0",
+  "standard_version": "8.0.0",
   "artifacts": {
-    "skills": 1,
-    "agents": 1,
-    "prompts": 1,
-    "mcps": 1,
-    "hooks": 1
+    "skills": ["demo.sdlc.revisar-cobertura"],
+    "agents": ["demo.sdlc.revisor"],
+    "prompts": ["demo.sdlc.revisar"]
   },
   "mcp": {
-    "servers": [
-      {
-        "name": "aws-knowledge",
-        "source": {
-          "kind": "remote",
-          "ref": "https://knowledge-mcp.global.api.aws",
-          "version_pin": "sin-version"
-        },
-        "transport": "http",
-        "endpoint": "https://knowledge-mcp.global.api.aws",
-        "write_operations": false,
-        "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
-        "tools_digest_date": "2026-08-23"
+    "aws-knowledge": {
+      "write_operations": false,
+      "tools_digest": "4f6f3424d74ac9a388debfbba81c0e895fcdf846dc83d51911c3c271be7dfe36",
+      "tools_digest_date": "2026-08-23",
+      "credentials": [],
+      "approval": {
+        "approved_by": "squad-plataforma-datos",
+        "date": "2026-08-23",
+        "review_by": "2026-11-23",
+        "security_review": true,
+        "notes": "Servidor publico de solo lectura, sin credencial. `credentials: []` no es una omision: AFIRMA que este servidor no pide ninguna, y el gate lo verifica contra los ${VAR} del .mcp.json. Antes era un `mechanism: none` que no se podia contrastar contra nada."
       }
-    ],
-    "credentials": {
-      "mechanism": "none"
-    },
-    "approval": {
-      "approved_by": "squad-plataforma-datos",
-      "date": "2026-08-23",
-      "review_by": "2026-11-23",
-      "security_review": true
     }
   },
   "hooks": {

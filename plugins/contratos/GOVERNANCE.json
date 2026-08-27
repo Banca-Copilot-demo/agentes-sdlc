@@ -6,11 +6,10 @@
     "contact": "squad-sdlc@ejemplo.dev"
   },
   "data_classification": "internal",
-  "standard_version": "7.0.0",
+  "standard_version": "8.0.0",
   "artifacts": {
-    "skills": 1,
-    "agents": 0,
-    "prompts": 0,
-    "mcps": 0
+    "skills": ["demo.sdlc.validar-contrato-openapi"],
+    "agents": [],
+    "prompts": []
   }
 }

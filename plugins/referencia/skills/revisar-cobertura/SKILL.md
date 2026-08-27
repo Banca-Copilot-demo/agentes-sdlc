@@ -9,8 +9,8 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.1.0"
-  standard_version: "7.0.0"
+  version: "0.2.0"
+  standard_version: "8.0.0"
 ---
 
 # Revisar la cobertura de un cambio
