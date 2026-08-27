@@ -8,7 +8,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.1"
+  version: "0.2.2"
   standard_version: "8.0.0"
 ---
 
@@ -51,6 +51,11 @@ aparece con el paso del tiempo y no con el volumen del momento.
 **Subconsulta evitable.** Una clausula `IN (subquery)` obliga a resolver la consulta interna entera
 antes de empezar la externa. Cuando el resultado interno es estable -- una lista de proyectos, un
 conjunto de tipos --, enumerarlo evita recorrerlo en cada ejecucion.
+
+**Orden sin limite.** Un `ORDER BY` sin acotar cuantos resultados se quieren obliga a ordenar el
+conjunto entero para devolver las primeras filas. Es el defecto que peor envejece de todos: la consulta
+nace rapida porque hay pocas incidencias, y se degrada sola segun crece el proyecto sin que nadie
+cambie una linea.
 
 ## Que devolver
 
