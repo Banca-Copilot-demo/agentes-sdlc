@@ -84,6 +84,36 @@ tests:
           cabecera de trazabilidad, datos reales en ejemplos y paginacion -- ni propone mejoras de
           estilo que el artefacto no exige.
 
+  # ── BORDE ─────────────────────────────────────────────────────────────────────────────────
+  # UN SOLO DEFECTO, y de los que no saltan a la vista. El primer caso presenta un contrato con varios
+  # problemas a la vez: ahi basta con que el artefacto encuentre ALGUNO para que la asercion pase, asi
+  # que no distingue «los revisa todos» de «se queda en el primero». Este trae un contrato limpio salvo
+  # por la paginacion ausente en una coleccion, que es el lineamiento que mas tarde se nota -- la
+  # respuesta funciona el primer dia y se degrada sola segun crece la coleccion --.
+  - description: coleccion sin paginacion → lo senala aunque el resto del contrato este bien
+    vars:
+      consulta: |
+        Revisa este contrato OpenAPI:
+        openapi: 3.0.0
+        info: { title: API de clientes, version: 1.0.0 }
+        paths:
+          /clientes:
+            get:
+              summary: Lista los clientes
+              operationId: listarClientes
+              responses:
+                '200': { description: OK }
+                '400': { description: Peticion invalida }
+    assert:
+      # ANCLA DETERMINISTA: si lo detecto, nombra el lineamiento.
+      - type: icontains
+        value: paginacion
+      - type: llm-rubric
+        value: >
+          Senala que la coleccion `/clientes` no declara paginacion y explica la consecuencia -- que la
+          respuesta crece sin limite segun crece la coleccion --. No hace falta que proponga una forma
+          concreta de paginar.
+
   # ── NEGATIVO ──────────────────────────────────────────────────────────────────────────────
   # Un «near-miss»: comparte vocabulario -- API, contrato -- pero no pide revisar una especificacion.
   # Es el caso que impide que una `description` demasiado amplia capture tareas ajenas, y la omision
