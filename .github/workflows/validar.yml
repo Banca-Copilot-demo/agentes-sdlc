@@ -50,7 +50,7 @@ jobs:
   #
   # NO CUELGA DE LA CONFORMIDAD: comprueba la FORMA de este archivo, no el contenido del inventario, y
   # esperar al gate solo retrasaria el aviso.
-  forma-del-llamador:
+  caller-wiring:
     # Las pruebas y las versiones viven en el estandar: lo que fijan -- los ids de job de las
     # comprobaciones requeridas, el `if: always()`, el `needs:` y los secretos -- es identico en todos
     # los repositorios de dominio (Y1, Y2).
