@@ -1,6 +1,6 @@
 ---
 name: demo.sdlc.revisor
-description: "Revisa un pull request completo y devuelve los hallazgos priorizados por severidad, con el archivo y la linea de cada uno. Delegale la revision cuando el cambio toque mas de un modulo o cuando haga falta un criterio uniforme sobre todo el PR."
+description: ""
 model: claude-sonnet-4-6
 tools:
   - Read
@@ -17,7 +17,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.0"
+  version: "0.2.1"
   standard_version: "8.0.0"
 ---
 
