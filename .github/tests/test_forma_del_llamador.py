@@ -44,6 +44,20 @@ def _job_que_evalua() -> tuple[str, dict]:
         "`uses:` cambio de forma y esta prueba dejo de mirar nada")
 
 
+def test_el_brazo_de_evaluacion_sigue_llamandose_comportamiento():
+    """LA OTRA MITAD DEL NOMBRE REQUERIDO. `comportamiento / Veredicto de comportamiento` se compone
+    del ID de ESTE job y del `name:` del agregador del reutilizable; el ruleset lo exige por
+    coincidencia EXACTA. Renombrar el job -- tentador ahora que el canal tambien valida -- deja la
+    comprobacion requerida sin nadie que la emita, y el pull request se atasca en «Expected — waiting
+    for status» en vez de rechazarse. MEDIDO: ese atasco ya ocurrio dos veces en este proyecto."""
+    nombre, _ = _job_que_evalua()
+
+    assert nombre == "comportamiento", (
+        f"el job que llama a la evaluacion se llama `{nombre}`: la comprobacion pasaria a ser "
+        f"`{nombre} / Veredicto de comportamiento` y el ruleset seguiria esperando la de "
+        "`comportamiento`")
+
+
 def test_el_brazo_de_evaluacion_arranca_aunque_la_conformidad_falle():
     """SIN ESTO EL GATE SE ATASCA, no se pone en rojo. Un job saltado al menos reporta algo; una
     LLAMADA saltada no reporta nada, y la comprobacion requerida espera para siempre."""
@@ -71,15 +85,59 @@ def test_el_orden_frente_a_la_conformidad_se_conserva():
         "esta bien formado")
 
 
-def test_el_resultado_de_la_conformidad_llega_al_workflow_que_evalua():
-    """EL CORTOCIRCUITO VIVE ALLA, PERO EL DATO SALE DE AQUI. El workflow reutilizable no ve los jobs
-    de este archivo -- `needs` es local --, asi que sin este input arrancaria a evaluar igualmente y
-    gastaria la cuota de inferencia en un artefacto cuyo formato el gate ya declaro roto. Con
-    `always()` puesto y este input olvidado, el arreglo se vuelve un gasto."""
-    nombre, job = _job_que_evalua()
-    entradas = job.get("with") or {}
+def _job_de_conformidad() -> tuple[str, dict]:
+    for nombre, job in _jobs().items():
+        if "workflows/validar.yml" in str(job.get("uses", "")):
+            return nombre, job
+    raise AssertionError("ningun job de `validar.yml` llama al gate determinista del estandar")
 
-    assert "needs.conformidad.result" in str(entradas.get("conformidad", "")), (
-        f"el job `{nombre}` no le pasa el resultado de la conformidad a la evaluacion "
-        f"(with={entradas!r}): el workflow llamado no puede deducirlo, asi que evaluaria un "
-        "artefacto que ya se sabe mal formado -- y su veredicto no podria salir `no_evaluable`")
+
+def test_el_trabajo_de_conformidad_sigue_llamandose_validar():
+    """EL NOMBRE DE LA COMPROBACION REQUERIDA ES `conformidad / validar`, Y SE COMPONE DE DOS MITADES
+    QUE VIVEN EN ARCHIVOS DISTINTOS: el ID de ESTE job y el `name:` del job del reutilizable. El
+    ruleset la exige por coincidencia EXACTA de texto, asi que si cualquiera de las dos cambia, la
+    comprobacion deja de emitirse con ese nombre y TODAS las solicitudes de cambio quedan bloqueadas
+    para siempre en «Expected — waiting for status», esperando un estado que ya nadie enviara.
+
+    MEDIDO: ese atasco ya ocurrio dos veces en este proyecto, y no se lee como un rechazo -- parece un
+    fallo de la plataforma --. Aqui se fija la mitad que este repositorio controla.
+    """
+    nombre, _ = _job_de_conformidad()
+
+    assert nombre == "conformidad", (
+        f"el job del gate determinista se llama `{nombre}` y no `conformidad`: la comprobacion pasaria "
+        f"a llamarse `{nombre} / validar` y el ruleset seguiria esperando `conformidad / validar`")
+
+
+def test_la_conformidad_solo_corre_las_reglas_de_repositorio_en_una_solicitud_de_cambio():
+    """LA MITAD QUE NO SE VE AL REPARTIR EL GATE. Las reglas de cada unidad se mudaron al canal de su
+    unidad, que solo existe en una solicitud de cambio. Si este job pidiera `repositorio` tambien en el
+    push a `main`, las unidades se quedarian SIN VALIDAR en la rama publicada -- en verde, porque nadie
+    las estaria mirando --. Y si no pidiera nada, cada unidad se validaria DOS veces en cada pull
+    request: aqui y en su canal."""
+    _, job = _job_de_conformidad()
+    alcance = str((job.get("with") or {}).get("alcance", ""))
+
+    assert "repositorio" in alcance and "pull_request" in alcance, (
+        f"el alcance del gate determinista es {alcance!r}: tiene que pedir `repositorio` en una "
+        "solicitud de cambio -- donde cada unidad tiene su canal -- y el recorrido completo fuera de "
+        "ella, donde no hay canales que validen las unidades")
+
+
+def test_la_evaluacion_recibe_los_secretos_que_necesita_para_comprobar_el_dueno():
+    """LA REGLA QUE SE DEBILITA EN SILENCIO AL MUDAR LA VALIDACION. G4 exige que el `owner_team`
+    declarado EXISTA en la organizacion, y el `GITHUB_TOKEN` de Actions no puede leer los equipos --
+    responde 403, MEDIDO --: sin un token de la App, el validador no comprueba y degrada a AVISO.
+
+    Ahora que la validacion por unidad corre dentro de los canales, olvidarlos aqui no rompe nada
+    visible: el gate sigue en verde y un artefacto con un dueño inexistente se publica igual. Es
+    exactamente la clase de fallo que este repositorio persigue -- un control en verde que no protege
+    nada --."""
+    nombre, job = _job_que_evalua()
+    secretos = job.get("secrets") or {}
+
+    for secreto in ("app-id", "app-key"):
+        assert secreto in secretos, (
+            f"el job `{nombre}` no le pasa `{secreto}` a la evaluacion (secrets={sorted(secretos)}): "
+            "la validacion de cada unidad corre alli y no podria resolver los equipos de la "
+            "organizacion, asi que un `owner_team` inexistente pasaria de ERROR a aviso")

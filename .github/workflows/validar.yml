@@ -22,6 +22,22 @@ env:
 jobs:
   conformidad:
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/validar.yml@main
+    with:
+      # EL REPARTO DEL GATE, Y POR QUE DEPENDE DEL EVENTO.
+      #
+      # En una SOLICITUD DE CAMBIO cada unidad tocada tiene su propio canal -- se valida y, si valida,
+      # se evalua --, asi que aqui solo quedan las reglas que se juzgan sobre el arbol entero: higiene,
+      # mezcla de aprobadores, huerfanos y subida de version. Ninguna de ellas se puede repartir en
+      # canales: un huerfano, por definicion, no pertenece a ninguna unidad, asi que ningun recorrido
+      # por unidades lo encontraria nunca.
+      #
+      # En un PUSH A `main` no hay canales -- la revision por unidad no corre fuera de un pull request,
+      # para no gastar dos veces el unico token de inferencia sobre el mismo contenido --, asi que
+      # pedir `repositorio` tambien aqui dejaria a las unidades sin validar en la rama publicada. Por
+      # eso este evento conserva el recorrido completo de siempre.
+      #
+      # SE RESUELVE UNA SOLA VEZ, aqui (Y3): es el unico sitio del archivo que necesita el dato.
+      alcance: ${{ github.event_name == 'pull_request' && 'repositorio' || 'todo' }}
     # SOLO ESTOS DOS, nombrados, y no `secrets: inherit`: el validador necesita leer los EQUIPOS de la
     # organizacion para comprobar que el `owner_team` declarado exista, y el token del repositorio no
     # puede -- responde 403 --. Heredar en bloque le entregaria ademas las credenciales de Port y de la
@@ -98,18 +114,27 @@ jobs:
   # El contraste esta en el commit `c44d21a`: alli una celda de matriz en rojo SI emitio su veredicto
   # en `failure`, precisamente porque el brazo habia arrancado.
   #
-  # Y NO SE EVALUA IGUALMENTE: el resultado del gate viaja como input y el workflow llamado
-  # cortocircuita su deteccion, asi que no se abre ninguna celda ni se gasta una llamada al modelo en
-  # un artefacto cuyo formato ya se sabe roto -- el orden por COSTE CRECIENTE se mantiene intacto --.
-  # Lo unico que cambia es que ahora el brazo ARRANCA para RECHAZAR, con el veredicto `no_evaluable`
-  # en rojo, en vez de saltarse y dejar el gate esperando.
+  # Y NO SE EVALUA IGUALMENTE POR ARRANCAR: el cortocircuito se mudo DENTRO de cada canal, donde es
+  # mas fino. La celda valida su unidad y solo entonces ejecuta sus suites, asi que un artefacto cuyo
+  # formato ya se sabe roto no gasta una sola llamada al modelo -- el orden por COSTE CRECIENTE se
+  # mantiene intacto, pero acotado a la unidad que falla en vez de detener a todas --.
+  #
+  # POR ESO YA NO SE LE PASA `conformidad` COMO INPUT: este trabajo solo ejecuta ya las reglas de
+  # REPOSITORIO -- higiene, mezcla de aprobadores, huerfanos, subida de version --, y ninguna de ellas
+  # dice nada sobre si el formato de una unidad concreta es valido. Cortocircuitar la revision entera
+  # porque haya un huerfano en el arbol seria devolver el «uno bloquea a todos» por la puerta del
+  # input. La conformidad sigue deteniendo el cambio por su cuenta: es comprobacion requerida.
   comportamiento:
     if: always() && github.event_name == 'pull_request'
     needs: conformidad
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/evaluar.yml@main
-    with:
-      conformidad: ${{ needs.conformidad.result }}
     secrets:
+      # LOS MISMOS DOS QUE RECIBE LA CONFORMIDAD, y ahora hacen falta TAMBIEN aqui porque la
+      # validacion de cada unidad corre dentro de su canal. Sin ellos, la comprobacion de que el
+      # `owner_team` declarado EXISTA degradaria de error a aviso por el mero hecho de haberse mudado
+      # de trabajo, y un artefacto con un dueño inexistente se publicaria en verde.
+      app-id:  ${{ secrets.APP_ID_AGENTICO }}
+      app-key: ${{ secrets.APP_KEY_AGENTICO }}
       # Solo mientras la organizacion no tenga asientos de Copilot propios: el token de Actions
       # hereda esa carencia y el CLI responde «Access denied by policy settings».
       copilot-token: ${{ secrets.COPILOT_GITHUB_TOKEN }}
