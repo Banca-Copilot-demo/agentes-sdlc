@@ -11,6 +11,14 @@ permissions:
   # Lo pide la evaluacion para poder solicitar inferencia. Sin el, el CLI falla con un error que no
   # nombra al permiso.
 
+# Y2: las versiones son variables, en un solo sitio. Se fijan y no se dejan flotar porque una prueba
+# de FORMA que empezara a fallar por un cambio del motor seria indistinguible de un cableado roto, que
+# es justo la senal que este archivo existe para dar.
+env:
+  VERSION_PYTHON: "3.12"
+  VERSION_PYTEST: "8.3.4"
+  VERSION_PYYAML: "6.0.2"
+
 jobs:
   conformidad:
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/validar.yml@main
@@ -21,6 +29,32 @@ jobs:
     secrets:
       app-id:  ${{ secrets.APP_ID_AGENTICO }}
       app-key: ${{ secrets.APP_KEY_AGENTICO }}
+
+  # EL CABLEADO DE LOS GATES TAMBIEN ES CODIGO QUE DECIDE SI ALGO SE PUBLICA, y por eso tiene sus
+  # propias pruebas aqui: si se rompe en silencio deja de proteger sin que nadie lo note. Lo que fijan
+  # es concretamente el `if: always()` de abajo -- una linea que se lee como redundante al lado de su
+  # `needs:` y que la proxima limpieza va a querer borrar --, cuya ausencia no rompe nada visible: solo
+  # devuelve el gate al atasco de `f6e00a1a`, y solo el dia que la conformidad falle.
+  #
+  # NO CUELGA DE LA CONFORMIDAD: comprueba la FORMA de este archivo, no el contenido del inventario, y
+  # esperar al gate solo retrasaria el aviso.
+  forma-del-llamador:
+    name: Forma del cableado de los gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.VERSION_PYTHON }}
+
+      - name: Instalar lo que las pruebas necesitan para leer el YAML
+        run: pip install --quiet "pytest==${{ env.VERSION_PYTEST }}" "pyyaml==${{ env.VERSION_PYYAML }}"
+
+      - name: Comprobar que el brazo de evaluacion arranca aunque la conformidad falle
+        run: python -m pytest "$GITHUB_WORKSPACE/.github/tests" -q
 
   # SE EJECUTA DESPUES DE LA CONFORMIDAD, NUNCA EN PARALELO, y el `needs` es lo que lo garantiza.
   #
@@ -50,10 +84,31 @@ jobs:
   #
   # EL WORKFLOW LLAMADO LO IMPIDE ADEMAS POR SU CUENTA -- fuera de un pull request su deteccion no
   # arranca y devuelve `no_procede` --. Esta condicion es la que evita encender el runner siquiera.
+  # EL `needs` CONSERVA EL ORDEN; EL `always()` DESACTIVA LA CONDICION. Son dos cosas distintas y hace
+  # falta escribir las dos, porque `needs:` significa a la vez «despues de» y «solo si paso», y aqui
+  # solo se quiere la primera mitad.
+  #
+  # POR QUE, MEDIDO en el commit `f6e00a1a` de este repositorio. Con la conformidad en `failure`, este
+  # job se saltaba -- y al saltarse EL LLAMADOR, el workflow reutilizable ni siquiera arranca: sus
+  # jobs internos NO SE MATERIALIZAN. No emiten un check-run «skipped»: sencillamente no existen.
+  # Como `comportamiento / Veredicto de comportamiento` es comprobacion REQUERIDA del ruleset, GitHub
+  # se quedaba mostrando «Expected — waiting for status»: esperando indefinidamente algo que ya nadie
+  # iba a emitir. La solicitud de cambio no quedaba rechazada, quedaba ATASCADA.
+  #
+  # El contraste esta en el commit `c44d21a`: alli una celda de matriz en rojo SI emitio su veredicto
+  # en `failure`, precisamente porque el brazo habia arrancado.
+  #
+  # Y NO SE EVALUA IGUALMENTE: el resultado del gate viaja como input y el workflow llamado
+  # cortocircuita su deteccion, asi que no se abre ninguna celda ni se gasta una llamada al modelo en
+  # un artefacto cuyo formato ya se sabe roto -- el orden por COSTE CRECIENTE se mantiene intacto --.
+  # Lo unico que cambia es que ahora el brazo ARRANCA para RECHAZAR, con el veredicto `no_evaluable`
+  # en rojo, en vez de saltarse y dejar el gate esperando.
   comportamiento:
-    if: github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request'
     needs: conformidad
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/evaluar.yml@main
+    with:
+      conformidad: ${{ needs.conformidad.result }}
     secrets:
       # Solo mientras la organizacion no tenga asientos de Copilot propios: el token de Actions
       # hereda esa carencia y el CLI responde «Access denied by policy settings».
