@@ -1,74 +1,16 @@
 name: Comprobar Port
 
-# TEMPORAL. Comprueba que las credenciales de Port estan puestas, que este repositorio las ve, y en
-# que region esta el tenant. NO imprime el token ni ningun secreto: solo codigos de estado.
+# La logica vive en el estandar: la pregunta «¿llegan las credenciales de Port a este repositorio?»
+# es identica en todos los repositorios de dominio, y copiarla garantizaba que divergiera (Y1).
+# Aqui solo se declara cuando corre y que secretos se le pasan.
 on:
   workflow_dispatch:
 
-permissions: {}
-
 jobs:
-  comprobar:
-    runs-on: ubuntu-latest
-    steps:
-      - name: ¿Estan los tres secretos?
-        env:
-          ID: ${{ secrets.PORT_CLIENT_ID }}
-          SECRETO: ${{ secrets.PORT_CLIENT_SECRET }}
-          ORG: ${{ secrets.PORT_ORG_ID }}
-        run: |
-          for nombre in ID SECRETO ORG; do
-            if [ -z "${!nombre:-}" ]; then
-              echo "::error::el secreto $nombre no llega a este repositorio"
-              faltan=1
-            else
-              echo "$nombre: presente (${#nombre} no se imprime el valor)"
-            fi
-          done
-          [ -z "${faltan:-}" ] || exit 1
-
-      # Se prueban las DOS regiones porque el tenant esta en una sola y un fallo por region se
-      # manifiesta como un 401 que no menciona la region.
-      - name: ¿En que region esta el tenant?
-        env:
-          ID: ${{ secrets.PORT_CLIENT_ID }}
-          SECRETO: ${{ secrets.PORT_CLIENT_SECRET }}
-        run: |
-          for base in https://api.port.io https://api.us.port.io; do
-            codigo="$(curl -s -o /tmp/r.json -w '%{http_code}' -X POST "$base/v1/auth/access_token" \
-              -H 'Content-Type: application/json' \
-              -d "{\"clientId\":\"$ID\",\"clientSecret\":\"$SECRETO\"}")"
-            if [ "$codigo" = "200" ] && grep -q accessToken /tmp/r.json; then
-              # Se guarda en una variable del shell Y en el entorno: `$GITHUB_ENV` no se lee hasta
-              # el paso siguiente, asi que dentro de ESTE paso solo sirve la del shell.
-              encontrada="$base"
-              echo "REGION=$base" >> "$GITHUB_ENV"
-              echo "Autenticacion correcta en $base"
-            else
-              echo "  $base -> HTTP $codigo (no es esta region)"
-            fi
-          done
-          if [ -z "${encontrada:-}" ]; then
-            echo "::error::las credenciales no autentican en ninguna region"
-            grep -o '"[a-z]*":"[^"]*"' /tmp/r.json | head -3
-            exit 1
-          fi
-
-      - name: Que hay ya en Port
-        env:
-          ID: ${{ secrets.PORT_CLIENT_ID }}
-          SECRETO: ${{ secrets.PORT_CLIENT_SECRET }}
-        run: |
-          token="$(curl -s -X POST "$REGION/v1/auth/access_token" -H 'Content-Type: application/json' \
-            -d "{\"clientId\":\"$ID\",\"clientSecret\":\"$SECRETO\"}" | python3 -c 'import json,sys;print(json.load(sys.stdin)["accessToken"])')"
-          blueprints="$(curl -s "$REGION/v1/blueprints" -H "Authorization: Bearer $token" \
-            | python3 -c 'import json,sys;d=json.load(sys.stdin);print(len(d.get("blueprints",[])))')"
-          {
-            echo "## Port"
-            echo
-            echo "| Qué | Valor |"
-            echo "|---|---|"
-            echo "| Región | \`$REGION\` |"
-            echo "| Blueprints ya existentes | $blueprints |"
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "region=$REGION  blueprints=$blueprints"
+  check-port-access:
+    uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/check-port-access.yml@main
+    # SE NOMBRAN UNO A UNO Y NO `secrets: inherit`: heredar en bloque le entregaria tambien las
+    # credenciales de la App del ciclo de vida y el token de Copilot, que este workflow no necesita.
+    secrets:
+      port-client-id: ${{ secrets.PORT_CLIENT_ID }}
+      port-client-secret: ${{ secrets.PORT_CLIENT_SECRET }}
