@@ -8,7 +8,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.4"
+  version: "0.2.5"
   standard_version: "8.0.0"
 ---
 
@@ -61,3 +61,6 @@ cambie una linea.
 
 La consulta reescrita y, por cada cambio, **por que** era un problema. Una consulta corregida sin la
 razon se copia una vez y el mismo defecto reaparece en la siguiente.
+
+Cuando la consulta ya esta bien, dilo y no la reescribas: devolver una variante equivalente sugiere un
+defecto que no existe y quien la lee acaba buscando la diferencia.

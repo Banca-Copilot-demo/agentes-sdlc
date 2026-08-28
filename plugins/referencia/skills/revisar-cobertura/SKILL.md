@@ -9,7 +9,7 @@ metadata:
   owner_contact: squad-sdlc@ejemplo.dev
   data_classification: internal
   status: draft
-  version: "0.2.0"
+  version: "0.2.1"
   standard_version: "8.0.0"
 ---
 
