@@ -11,9 +11,33 @@ permissions:
   # Lo pide la evaluacion para poder solicitar inferencia. Sin el, el CLI falla con un error que no
   # nombra al permiso.
 
+# Y2: las versiones son variables, en un solo sitio. Se fijan y no se dejan flotar porque una prueba
+# de FORMA que empezara a fallar por un cambio del motor seria indistinguible de un cableado roto, que
+# es justo la senal que este archivo existe para dar.
+env:
+  VERSION_PYTHON: "3.12"
+  VERSION_PYTEST: "8.3.4"
+  VERSION_PYYAML: "6.0.2"
+
 jobs:
   conformidad:
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/validar.yml@main
+    with:
+      # EL REPARTO DEL GATE, Y POR QUE DEPENDE DEL EVENTO.
+      #
+      # En una SOLICITUD DE CAMBIO cada unidad tocada tiene su propio canal -- se valida y, si valida,
+      # se evalua --, asi que aqui solo quedan las reglas que se juzgan sobre el arbol entero: higiene,
+      # mezcla de aprobadores, huerfanos y subida de version. Ninguna de ellas se puede repartir en
+      # canales: un huerfano, por definicion, no pertenece a ninguna unidad, asi que ningun recorrido
+      # por unidades lo encontraria nunca.
+      #
+      # En un PUSH A `main` no hay canales -- la revision por unidad no corre fuera de un pull request,
+      # para no gastar dos veces el unico token de inferencia sobre el mismo contenido --, asi que
+      # pedir `repositorio` tambien aqui dejaria a las unidades sin validar en la rama publicada. Por
+      # eso este evento conserva el recorrido completo de siempre.
+      #
+      # SE RESUELVE UNA SOLA VEZ, aqui (Y3): es el unico sitio del archivo que necesita el dato.
+      alcance: ${{ github.event_name == 'pull_request' && 'repositorio' || 'todo' }}
     # SOLO ESTOS DOS, nombrados, y no `secrets: inherit`: el validador necesita leer los EQUIPOS de la
     # organizacion para comprobar que el `owner_team` declarado exista, y el token del repositorio no
     # puede -- responde 403 --. Heredar en bloque le entregaria ademas las credenciales de Port y de la
@@ -21,6 +45,32 @@ jobs:
     secrets:
       app-id:  ${{ secrets.APP_ID_AGENTICO }}
       app-key: ${{ secrets.APP_KEY_AGENTICO }}
+
+  # EL CABLEADO DE LOS GATES TAMBIEN ES CODIGO QUE DECIDE SI ALGO SE PUBLICA, y por eso tiene sus
+  # propias pruebas aqui: si se rompe en silencio deja de proteger sin que nadie lo note. Lo que fijan
+  # es concretamente el `if: always()` de abajo -- una linea que se lee como redundante al lado de su
+  # `needs:` y que la proxima limpieza va a querer borrar --, cuya ausencia no rompe nada visible: solo
+  # devuelve el gate al atasco de `f6e00a1a`, y solo el dia que la conformidad falle.
+  #
+  # NO CUELGA DE LA CONFORMIDAD: comprueba la FORMA de este archivo, no el contenido del inventario, y
+  # esperar al gate solo retrasaria el aviso.
+  forma-del-llamador:
+    name: Forma del cableado de los gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.VERSION_PYTHON }}
+
+      - name: Instalar lo que las pruebas necesitan para leer el YAML
+        run: pip install --quiet "pytest==${{ env.VERSION_PYTEST }}" "pyyaml==${{ env.VERSION_PYYAML }}"
+
+      - name: Comprobar que el brazo de evaluacion arranca aunque la conformidad falle
+        run: python -m pytest "$GITHUB_WORKSPACE/.github/tests" -q
 
   # SE EJECUTA DESPUES DE LA CONFORMIDAD, NUNCA EN PARALELO, y el `needs` es lo que lo garantiza.
   #
@@ -50,11 +100,41 @@ jobs:
   #
   # EL WORKFLOW LLAMADO LO IMPIDE ADEMAS POR SU CUENTA -- fuera de un pull request su deteccion no
   # arranca y devuelve `no_procede` --. Esta condicion es la que evita encender el runner siquiera.
+  # EL `needs` CONSERVA EL ORDEN; EL `always()` DESACTIVA LA CONDICION. Son dos cosas distintas y hace
+  # falta escribir las dos, porque `needs:` significa a la vez «despues de» y «solo si paso», y aqui
+  # solo se quiere la primera mitad.
+  #
+  # POR QUE, MEDIDO en el commit `f6e00a1a` de este repositorio. Con la conformidad en `failure`, este
+  # job se saltaba -- y al saltarse EL LLAMADOR, el workflow reutilizable ni siquiera arranca: sus
+  # jobs internos NO SE MATERIALIZAN. No emiten un check-run «skipped»: sencillamente no existen.
+  # Como `comportamiento / Veredicto de comportamiento` es comprobacion REQUERIDA del ruleset, GitHub
+  # se quedaba mostrando «Expected — waiting for status»: esperando indefinidamente algo que ya nadie
+  # iba a emitir. La solicitud de cambio no quedaba rechazada, quedaba ATASCADA.
+  #
+  # El contraste esta en el commit `c44d21a`: alli una celda de matriz en rojo SI emitio su veredicto
+  # en `failure`, precisamente porque el brazo habia arrancado.
+  #
+  # Y NO SE EVALUA IGUALMENTE POR ARRANCAR: el cortocircuito se mudo DENTRO de cada canal, donde es
+  # mas fino. La celda valida su unidad y solo entonces ejecuta sus suites, asi que un artefacto cuyo
+  # formato ya se sabe roto no gasta una sola llamada al modelo -- el orden por COSTE CRECIENTE se
+  # mantiene intacto, pero acotado a la unidad que falla en vez de detener a todas --.
+  #
+  # POR ESO YA NO SE LE PASA `conformidad` COMO INPUT: este trabajo solo ejecuta ya las reglas de
+  # REPOSITORIO -- higiene, mezcla de aprobadores, huerfanos, subida de version --, y ninguna de ellas
+  # dice nada sobre si el formato de una unidad concreta es valido. Cortocircuitar la revision entera
+  # porque haya un huerfano en el arbol seria devolver el «uno bloquea a todos» por la puerta del
+  # input. La conformidad sigue deteniendo el cambio por su cuenta: es comprobacion requerida.
   comportamiento:
-    if: github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request'
     needs: conformidad
     uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/evaluar.yml@main
     secrets:
+      # LOS MISMOS DOS QUE RECIBE LA CONFORMIDAD, y ahora hacen falta TAMBIEN aqui porque la
+      # validacion de cada unidad corre dentro de su canal. Sin ellos, la comprobacion de que el
+      # `owner_team` declarado EXISTA degradaria de error a aviso por el mero hecho de haberse mudado
+      # de trabajo, y un artefacto con un dueño inexistente se publicaria en verde.
+      app-id:  ${{ secrets.APP_ID_AGENTICO }}
+      app-key: ${{ secrets.APP_KEY_AGENTICO }}
       # Solo mientras la organizacion no tenga asientos de Copilot propios: el token de Actions
       # hereda esa carencia y el CLI responde «Access denied by policy settings».
       copilot-token: ${{ secrets.COPILOT_GITHUB_TOKEN }}

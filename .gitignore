@@ -1,0 +1,5 @@
+# Bytecode de las pruebas de forma del cableado. Se genera al correrlas en local y no es artefacto
+# del repositorio: sin esta linea, el gate lo ve como archivos sueltos dentro del arbol y el autor
+# tiene que acordarse de no anadirlo en cada commit.
+__pycache__/
+*.pyc
