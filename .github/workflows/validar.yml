@@ -11,13 +11,9 @@ permissions:
   # Lo pide la evaluacion para poder solicitar inferencia. Sin el, el CLI falla con un error que no
   # nombra al permiso.
 
-# Y2: las versiones son variables, en un solo sitio. Se fijan y no se dejan flotar porque una prueba
-# de FORMA que empezara a fallar por un cambio del motor seria indistinguible de un cableado roto, que
-# es justo la senal que este archivo existe para dar.
-env:
-  VERSION_PYTHON: "3.12"
-  VERSION_PYTEST: "8.3.4"
-  VERSION_PYYAML: "6.0.2"
+# AQUI YA NO SE FIJA NINGUNA VERSION (Y2). Las tres que habia -- Python, pytest y pyyaml -- eran para
+# las pruebas del cableado, que ahora viven en el estandar junto a las versiones que necesitan. Un
+# solo sitio donde subirlas, en vez de uno por repositorio de dominio y el riesgo de olvidar alguno.
 
 jobs:
   conformidad:
@@ -55,22 +51,10 @@ jobs:
   # NO CUELGA DE LA CONFORMIDAD: comprueba la FORMA de este archivo, no el contenido del inventario, y
   # esperar al gate solo retrasaria el aviso.
   forma-del-llamador:
-    name: Forma del cableado de los gates
-    runs-on: ubuntu-latest
-    steps:
-      - name: Descargar el repositorio
-        uses: actions/checkout@v4
-
-      - name: Preparar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.VERSION_PYTHON }}
-
-      - name: Instalar lo que las pruebas necesitan para leer el YAML
-        run: pip install --quiet "pytest==${{ env.VERSION_PYTEST }}" "pyyaml==${{ env.VERSION_PYYAML }}"
-
-      - name: Comprobar que el brazo de evaluacion arranca aunque la conformidad falle
-        run: python -m pytest "$GITHUB_WORKSPACE/.github/tests" -q
+    # Las pruebas y las versiones viven en el estandar: lo que fijan -- los ids de job de las
+    # comprobaciones requeridas, el `if: always()`, el `needs:` y los secretos -- es identico en todos
+    # los repositorios de dominio (Y1, Y2).
+    uses: Banca-Copilot-demo/estandar-agentico/.github/workflows/check-caller-wiring.yml@main
 
   # SE EJECUTA DESPUES DE LA CONFORMIDAD, NUNCA EN PARALELO, y el `needs` es lo que lo garantiza.
   #
